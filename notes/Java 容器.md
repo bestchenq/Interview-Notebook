@@ -291,8 +291,6 @@ transient Entry[] table;
 
 JDK 1.8 使用 Node 类型存储一个键值对，它依然继承自 Entry，因此可以按照上面的存储结构来理解。
 
-需要注意的是，Key 类型为 final，这意味着它不可改变，因此每个桶的链表采用头插法实现，也就是说新节点需要只能在链表头部插入。
-
 ```java
 static class Node<K,V> implements Map.Entry<K,V> {
     final int hash;
@@ -347,9 +345,9 @@ map.put("K3", "V3");
 - 新建一个 HashMap，默认大小为 16；
 - 插入 &lt;K1,V1> 键值对，先计算 K1 的 hashCode 为 115，使用除留余数法得到所在的桶下标 115%16=3。
 - 插入 &lt;K2,V2> 键值对，先计算 K2 的 hashCode 为 118，使用除留余数法得到所在的桶下标 118%16=6。
-- 插入 &lt;K3,V3> 键值对，先计算 K3 的 hashCode 为 118，使用除留余数法得到所在的桶下标 118%16=6，它需要插在 &lt;K2,V2> 之前。
+- 插入 &lt;K3,V3> 键值对，先计算 K3 的 hashCode 为 118，使用除留余数法得到所在的桶下标 118%16=6，插在 &lt;K2,V2> 后面。
 
-<div align="center"> <img src="../pics//c812c28a-1513-4a82-bfda-ab6a40981aa0.png" width="600"/> </div><br>
+<div align="center"> <img src="../pics//07903a31-0fb3-45fc-86f5-26f0b28fa4e7.png" width="600"/> </div><br>
 
 查找需要分成两步进行：
 
@@ -737,12 +735,7 @@ ConcurrentHashMap 的高并发性主要来自于三个方面：
 
 [ConcurrentHashMap.java](https://github.com/CyC2018/JDK-Source-Code/blob/master/src/ConcurrentHashMap.java)
 
-<div align="center"> <img src="../pics//7779232-1e8ed39548081a1f.png"/> </div><br>
-
-
 JDK 1.7 分段锁机制来实现并发更新操作，核心类为 Segment，它继承自重入锁 ReentrantLock。
-
-<div align="center"> <img src="../pics//7779232-96822582feb08651.png"/> </div><br>
 
 JDK 1.8 的实现不是用了 Segment，Segment 属于重入锁 ReentrantLock。而是使用了内置锁 synchronized，主要是出于以下考虑：
 

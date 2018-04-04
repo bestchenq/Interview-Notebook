@@ -15,7 +15,7 @@
     * [动态规划](#动态规划)
         * [斐波那契数列](#斐波那契数列)
         * [最长递增子序列](#最长递增子序列)
-        * [最长公共子系列](#最长公共子系列)
+        * [最长公共子序列](#最长公共子序列)
         * [0-1 背包](#0-1-背包)
         * [数组区间](#数组区间)
         * [字符串编辑](#字符串编辑)
@@ -70,11 +70,11 @@ public int search(int key, int[] array) {
 
 实现时需要注意以下细节：
 
-1. 在计算 mid 时不能使用 mid = (l + h) / 2 这种方式，因为 l + h 可能会导致加法溢出，应该使用 mid = l + (h - l) / 2。
+- 在计算 mid 时不能使用 mid = (l + h) / 2 这种方式，因为 l + h 可能会导致加法溢出，应该使用 mid = l + (h - l) / 2。
 
-2. 对 h 的赋值和循环条件有关，当循环条件为 l <= h 时，h = mid - 1；当循环条件为 l < h 时，h = mid。解释如下：在循环条件为 l <= h 时，如果 h = mid，会出现循环无法退出的情况，例如 l = 1，h = 1，此时 mid 也等于 1，如果此时继续执行 h = mid，那么就会无限循环；在循环条件为 l < h，如果 h = mid - 1，会错误跳过查找的数，例如对于数组 [1,2,3]，要查找 1，最开始 l = 0，h = 2，mid = 1，判断 key < arr[mid] 执行 h = mid - 1 = 0，此时循环退出，直接把查找的数跳过了。
+- 对 h 的赋值和循环条件有关，当循环条件为 l <= h 时，h = mid - 1；当循环条件为 l < h 时，h = mid。解释如下：在循环条件为 l <= h 时，如果 h = mid，会出现循环无法退出的情况，例如 l = 1，h = 1，此时 mid 也等于 1，如果此时继续执行 h = mid，那么就会无限循环；在循环条件为 l < h，如果 h = mid - 1，会错误跳过查找的数，例如对于数组 [1,2,3]，要查找 1，最开始 l = 0，h = 2，mid = 1，判断 key < arr[mid] 执行 h = mid - 1 = 0，此时循环退出，直接把查找的数跳过了。
 
-3. l 的赋值一般都为 l = mid + 1。
+- l 的赋值一般都为 l = mid + 1。
 
 **求开方** 
 
@@ -253,7 +253,7 @@ public int findMinArrowShots(int[][] points) {
 
 题目描述：一次交易包含买入和卖出，多个交易之间不能交叉进行。
 
-对于 [a, b, c, d]，如果有 a <= b <= c <= d ，那么最大收益为 d - a。而 d - a = (d - c) + (c - b) + (b - a) ，因此当访问到一个 prices[i] 且 prices[i] - prices[i-1] > 0，那么就把 prices[i] - prices[i-1] 添加加到收益中，从而在局部最优的情况下也保证全局最优。
+对于 [a, b, c, d]，如果有 a <= b <= c <= d ，那么最大收益为 d - a。而 d - a = (d - c) + (c - b) + (b - a) ，因此当访问到一个 prices[i] 且 prices[i] - prices[i-1] > 0，那么就把 prices[i] - prices[i-1] 添加到收益中，从而在局部最优的情况下也保证全局最优。
 
 ```java
 public int maxProfit(int[] prices) {
@@ -331,9 +331,10 @@ Return true.
 
 ```java
 public boolean isSubsequence(String s, String t) {
-    for (int i = 0, pos = 0; i < s.length(); i++, pos++) {
-        pos = t.indexOf(s.charAt(i), pos);
-        if(pos == -1) return false;
+    int index = 0;
+    for (char c : s.toCharArray()) {
+        index = t.indexOf(c, index);
+        if (index == -1) return false;
     }
     return true;
 }
@@ -355,18 +356,20 @@ A partition like "ababcbacadefegde", "hijhklij" is incorrect, because it splits 
 ```java
 public List<Integer> partitionLabels(String S) {
     List<Integer> ret = new ArrayList<>();
-    int[] lastIdxs = new int[26];
-    for(int i = 0; i < S.length(); i++) lastIdxs[S.charAt(i) - 'a'] = i;
-    int startIdx = 0;
-    while(startIdx < S.length()) {
-        int endIdx = startIdx;
-        for(int i = startIdx; i < S.length() && i <= endIdx; i++) {
-            int lastIdx = lastIdxs[S.charAt(i) - 'a'];
-            if(lastIdx == i) continue;
-            if(lastIdx > endIdx) endIdx = lastIdx;
+    int[] lastIndexs = new int[26];
+    for (int i = 0; i < S.length(); i++) {
+        lastIndexs[S.charAt(i) - 'a'] = i;
+    }
+    int firstIndex = 0;
+    while (firstIndex < S.length()) {
+        int lastIndex = firstIndex;
+        for (int i = firstIndex; i < S.length() && i <= lastIndex; i++) {
+            int index = lastIndexs[S.charAt(i) - 'a'];
+            if (index == i) continue;
+            if (index > lastIndex) lastIndex = index;
         }
-        ret.add(endIdx - startIdx + 1);
-        startIdx = endIdx + 1;
+        ret.add(lastIndex - firstIndex + 1);
+        firstIndex = lastIndex + 1;
     }
     return ret;
 }
@@ -392,23 +395,21 @@ Output:
 
 ```java
 public int[][] reconstructQueue(int[][] people) {
-    if(people == null || people.length == 0 || people[0].length == 0) return new int[0][0];
-
-    Arrays.sort(people, new Comparator<int[]>() {
-       public int compare(int[] a, int[] b) {
-           if(a[0] == b[0]) return a[1] - b[1];
-           return b[0] - a[0];
-       }
+    if (people == null || people.length == 0 || people[0].length == 0) return new int[0][0];
+    Arrays.sort(people, (a, b) -> {
+        if (a[0] == b[0]) return a[1] - b[1];
+        return b[0] - a[0];
     });
-
-    int n = people.length;
+    int N = people.length;
     List<int[]> tmp = new ArrayList<>();
-    for(int i = 0; i < n; i++) {
-        tmp.add(people[i][1], new int[]{people[i][0], people[i][1]});
+    for (int i = 0; i < N; i++) {
+        int index = people[i][1];
+        int[] p = new int[]{people[i][0], people[i][1]};
+        tmp.add(index, p);
     }
 
-    int[][] ret = new int[n][2];
-    for(int i = 0; i < n; i++) {
+    int[][] ret = new int[N][2];
+    for (int i = 0; i < N; i++) {
         ret[i][0] = tmp.get(i)[0];
         ret[i][1] = tmp.get(i)[1];
     }
@@ -420,7 +421,7 @@ public int[][] reconstructQueue(int[][] people) {
 
 双指针主要用于遍历数组，两个指针指向不同的元素，从而协同完成任务。
 
-**从一个已经排序的数组中找出两个数，使它们的和为 0** 
+**有序数组的 Tow Sum** 
 
 [Leetcode ：167. Two Sum II - Input array is sorted (Easy)](https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/description/)
 
@@ -428,6 +429,8 @@ public int[][] reconstructQueue(int[][] people) {
 Input: numbers={2, 7, 11, 15}, target=9
 Output: index1=1, index2=2
 ```
+
+题目描述：从一个已经排序的数组中找出两个数，使它们的和为 0。
 
 使用双指针，一个指针指向元素较小的值，一个指针指向元素较大的值。指向较小元素的指针从头向尾遍历，指向较大元素的指针从尾向头遍历。
 
@@ -457,22 +460,22 @@ Given s = "leetcode", return "leotcede".
 使用双指针，指向待反转的两个元音字符，一个指针从头向尾遍历，一个指针从尾到头遍历。
 
 ```java
-private HashSet<Character> vowels = new HashSet<>(Arrays.asList('a','e','i','o','u','A','E','I','O','U'));
+private HashSet<Character> vowels = new HashSet<>(Arrays.asList('a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'));
 
 public String reverseVowels(String s) {
-    if(s.length() == 0) return s;
+    if (s.length() == 0) return s;
     int i = 0, j = s.length() - 1;
     char[] result = new char[s.length()];
-    while(i <= j){
+    while (i <= j) {
         char ci = s.charAt(i);
         char cj = s.charAt(j);
-        if(!vowels.contains(ci)){
+        if (!vowels.contains(ci)) {
             result[i] = ci;
             i++;
-        } else if(!vowels.contains(cj)){
+        } else if (!vowels.contains(cj)) {
             result[j] = cj;
             j--;
-        } else{
+        } else {
             result[i] = cj;
             result[j] = ci;
             i++;
@@ -497,12 +500,12 @@ Explanation: 1 * 1 + 2 * 2 = 5
 
 ```java
 public boolean judgeSquareSum(int c) {
-    int left = 0, right = (int) Math.sqrt(c);
-    while(left <= right){
-        int powSum = left * left + right * right;
-        if(powSum == c) return true;
-        else if(powSum > c) right--;
-        else left++;
+    int i = 0, j = (int) Math.sqrt(c);
+    while (i <= j) {
+        int powSum = i * i + j * j;
+        if (powSum == c) return true;
+        if (powSum > c) j--;
+        else i++;
     }
     return false;
 }
@@ -522,9 +525,9 @@ Explanation: You could delete the character 'c'.
 
 ```java
 public boolean validPalindrome(String s) {
-    int i = 0, j = s.length() -1;
-    while(i < j){
-        if(s.charAt(i) != s.charAt(j)){
+    int i = 0, j = s.length() - 1;
+    while (i < j) {
+        if (s.charAt(i) != s.charAt(j)) {
             return isPalindrome(s, i, j - 1) || isPalindrome(s, i + 1, j);
         }
         i++;
@@ -533,12 +536,9 @@ public boolean validPalindrome(String s) {
     return true;
 }
 
-private boolean isPalindrome(String s, int l, int r){
-    while(l < r){
-        if(s.charAt(l) != s.charAt(r))
-            return false;
-        l++;
-        r--;
+private boolean isPalindrome(String s, int l, int r) {
+    while (l < r) {
+        if (s.charAt(l++) != s.charAt(r--)) return false;
     }
     return true;
 }
@@ -553,13 +553,13 @@ private boolean isPalindrome(String s, int l, int r){
 ```java
 public void merge(int[] nums1, int m, int[] nums2, int n) {
     int i = m - 1, j = n - 1; // 需要从尾开始遍历，否则在 nums1 上归并得到的值会覆盖还未进行归并比较的值
-    int idx = m + n - 1;
-    while(i >= 0 || j >= 0){
-        if(i < 0) nums1[idx] = nums2[j--];
-        else if(j < 0) nums1[idx] = nums1[i--];
-        else if(nums1[i] > nums2[j]) nums1[idx] = nums1[i--];
-        else nums1[idx] = nums2[j--];
-        idx--;
+    int index = m + n - 1;
+    while (i >= 0 || j >= 0) {
+        if (i < 0) nums1[index] = nums2[j--];
+        else if (j < 0) nums1[index] = nums1[i--];
+        else if (nums1[i] > nums2[j]) nums1[index] = nums1[i--];
+        else nums1[index] = nums2[j--];
+        index--;
     }
 }
 ```
@@ -572,12 +572,12 @@ public void merge(int[] nums1, int m, int[] nums2, int n) {
 
 ```java
 public boolean hasCycle(ListNode head) {
-    if(head == null) return false;
+    if (head == null) return false;
     ListNode l1 = head, l2 = head.next;
-    while(l1 != null && l2 != null){
-        if(l1 == l2) return true;
+    while (l1 != null && l2 != null) {
+        if (l1 == l2) return true;
         l1 = l1.next;
-        if(l2.next == null) break;
+        if (l2.next == null) break;
         l2 = l2.next.next;
     }
     return false;
@@ -605,8 +605,7 @@ public String findLongestWord(String s, List<String> d) {
         for (int i = 0, j = 0; i < s.length() && j < str.length(); i++) {
             if (s.charAt(i) == str.charAt(j)) j++;
             if (j == str.length()) {
-                if (ret.length() < str.length()
-                        || (ret.length() == str.length() && ret.compareTo(str) > 0)) {
+                if (ret.length() < str.length() || (ret.length() == str.length() && ret.compareTo(str) > 0)) {
                     ret = str;
                 }
             }
@@ -620,9 +619,9 @@ public String findLongestWord(String s, List<String> d) {
 
 ### 快速选择
 
-一般用于求解  **Kth Element**  问题，可以在 O(n) 时间复杂度，O(1) 空间复杂度完成求解工作。
+一般用于求解  **Kth Element**  问题，可以在 O(N) 时间复杂度，O(1) 空间复杂度完成求解工作。
 
-与快速排序一样，快速选择一般需要先打乱数组，否则最坏情况下时间复杂度为 O(n<sup>2</sup>)。
+与快速排序一样，快速选择一般需要先打乱数组，否则最坏情况下时间复杂度为 O(N<sup>2</sup>)。
 
 ### 堆排序
 
@@ -632,24 +631,23 @@ public String findLongestWord(String s, List<String> d) {
 
 [Leetocde : 215. Kth Largest Element in an Array (Medium)](https://leetcode.com/problems/kth-largest-element-in-an-array/description/)
 
-**排序** ：时间复杂度 O(nlgn)，空间复杂度 O(1)
+**排序** ：时间复杂度 O(NlogN)，空间复杂度 O(1)
 
 ```java
 public int findKthLargest(int[] nums, int k) {
-        int N = nums.length;
-        Arrays.sort(nums);
-        return nums[N - k];
+    Arrays.sort(nums);
+    return nums[nums.length - k];
 }
 ```
 
-**堆排序** ：时间复杂度 O(nlgk)，空间复杂度 O(k)
+**堆排序** ：时间复杂度 O(OlogK)，空间复杂度 O(K)。
 
 ```java
 public int findKthLargest(int[] nums, int k) {
     PriorityQueue<Integer> pq = new PriorityQueue<>();
-    for(int val : nums) {
-        pq.offer(val);
-        if(pq.size() > k) {
+    for (int val : nums) {
+        pq.add(val);
+        if (pq.size() > k) {
             pq.poll();
         }
     }
@@ -657,50 +655,41 @@ public int findKthLargest(int[] nums, int k) {
 }
 ```
 
-**快速选择** ：时间复杂度 O(n)，空间复杂度 O(1)
+**快速选择** ：时间复杂度 O(N)，空间复杂度 O(1)
 
 ```java
 public int findKthLargest(int[] nums, int k) {
-        k = nums.length - k;
-        int lo = 0;
-        int hi = nums.length - 1;
-        while (lo < hi) {
-            final int j = partition(nums, lo, hi);
-            if(j < k) {
-                lo = j + 1;
-            } else if (j > k) {
-                hi = j - 1;
-            } else {
-                break;
-            }
-        }
-        return nums[k];
+    k = nums.length - k;
+    int l = 0, h = nums.length - 1;
+    while (l < h) {
+        int j = partition(nums, l, h);
+        if (j == k) break;
+        if (j < k) l = j + 1;
+        else h = j - 1;
     }
+    return nums[k];
+}
 
-    private int partition(int[] a, int lo, int hi) {
-        int i = lo;
-        int j = hi + 1;
-        while(true) {
-            while(i < hi && less(a[++i], a[lo]));
-            while(j > lo && less(a[lo], a[--j]));
-            if(i >= j) {
-                break;
-            }
-            exch(a, i, j);
-        }
-        exch(a, lo, j);
-        return j;
+private int partition(int[] a, int l, int h) {
+    int i = l, j = h + 1;
+    while (true) {
+        while (i < h && less(a[++i], a[l])) ;
+        while (j > l && less(a[l], a[--j])) ;
+        if (i >= j) break;
+        swap(a, i, j);
     }
+    swap(a, l, j);
+    return j;
+}
 
-    private void exch(int[] a, int i, int j) {
-        final int tmp = a[i];
-        a[i] = a[j];
-        a[j] = tmp;
-    }
+private void swap(int[] a, int i, int j) {
+    int tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+}
 
-    private boolean less(int v, int w) {
-        return v < w;
-    }
+private boolean less(int v, int w) {
+    return v < w;
 }
 ```
 
@@ -719,21 +708,21 @@ Given [1,1,1,2,2,3] and k = 2, return [1,2].
 ```java
 public List<Integer> topKFrequent(int[] nums, int k) {
     List<Integer> ret = new ArrayList<>();
-    Map<Integer, Integer> map = new HashMap<>();
-    for(int num : nums) {
-        map.put(num, map.getOrDefault(num, 0) + 1);
+    Map<Integer, Integer> frequencyMap = new HashMap<>();
+    for (int num : nums) {
+        frequencyMap.put(num, frequencyMap.getOrDefault(num, 0) + 1);
     }
     List<Integer>[] bucket = new List[nums.length + 1];
-    for(int key : map.keySet()) {
-        int frequency = map.get(key);
-        if(bucket[frequency] == null) {
+    for (int key : frequencyMap.keySet()) {
+        int frequency = frequencyMap.get(key);
+        if (bucket[frequency] == null) {
             bucket[frequency] = new ArrayList<>();
         }
         bucket[frequency].add(key);
     }
 
-    for(int i = bucket.length - 1; i >= 0 && ret.size() < k; i--) {
-        if(bucket[i] != null) {
+    for (int i = bucket.length - 1; i >= 0 && ret.size() < k; i--) {
+        if (bucket[i] != null) {
             ret.addAll(bucket[i]);
         }
     }
@@ -760,7 +749,7 @@ public List<Integer> topKFrequent(int[] nums, int k) {
 - 6 -> {4}
 - 2 -> {}
 - 1 -> {}
-- 5 -> {4,3}
+- 5 -> {3}
 
 第三层：
 
@@ -819,7 +808,7 @@ private class Position {
 
 <div align="center"> <img src="../pics//f7f7e3e5-7dd4-4173-9999-576b9e2ac0a2.png"/> </div><br>
 
-广度优先搜索一层一层遍历，每一层得到到的所有新节点，要用队列先存储起来以备下一层遍历的时候再遍历；而深度优先搜索在得到到一个新节点时立马对新节点进行遍历：从节点 0 出发开始遍历，得到到新节点 6 时，立马对新节点 6 进行遍历，得到新节点 4；如此反复以这种方式遍历新节点，直到没有新节点了，此时返回。返回到根节点 0 的情况是，继续对根节点 0 进行遍历，得到新节点 2，然后继续以上步骤。
+广度优先搜索一层一层遍历，每一层得到的所有新节点，要用队列先存储起来以备下一层遍历的时候再遍历；而深度优先搜索在得到到一个新节点时立马对新节点进行遍历：从节点 0 出发开始遍历，得到到新节点 6 时，立马对新节点 6 进行遍历，得到新节点 4；如此反复以这种方式遍历新节点，直到没有新节点了，此时返回。返回到根节点 0 的情况是，继续对根节点 0 进行遍历，得到新节点 2，然后继续以上步骤。
 
 从一个节点出发，使用 DFS 对一个图进行遍历时，能够遍历到的节点都是从初始节点可达的，DFS 常用来求解这种  **可达性**  问题。
 
@@ -845,20 +834,21 @@ private class Position {
 
 ```java
 public int maxAreaOfIsland(int[][] grid) {
-    int m = grid.length, n = grid[0].length;
     int max = 0;
-    for(int i = 0; i < m; i++){
-        for(int j = 0; j < n; j++){
-            if(grid[i][j] == 1) max = Math.max(max, dfs(grid, i, j));
+    for (int i = 0; i < grid.length; i++) {
+        for (int j = 0; j < grid[i].length; j++) {
+            if (grid[i][j] == 1) {
+                max = Math.max(max, dfs(grid, i, j));
+            }
         }
     }
     return max;
 }
 
-private int dfs(int[][] grid, int i, int j){
-    int m = grid.length, n = grid[0].length;
-    if(i < 0 || i >= m || j < 0 || j >= n) return 0;
-    if(grid[i][j] == 0) return 0;
+private int dfs(int[][] grid, int i, int j) {
+    if (i < 0 || i >= grid.length || j < 0 || j >= grid[i].length || grid[i][j] == 0) {
+        return 0;
+    }
     grid[i][j] = 0;
     return dfs(grid, i + 1, j) + dfs(grid, i - 1, j) + dfs(grid, i, j + 1) + dfs(grid, i, j - 1) + 1;
 }
@@ -882,22 +872,22 @@ The 2nd student himself is in a friend circle. So return 2.
 public int findCircleNum(int[][] M) {
     int n = M.length;
     int ret = 0;
-    boolean[] hasFind = new boolean[n];
-    for(int i = 0; i < n; i++) {
-        if(!hasFind[i]) {
-            dfs(M, i, hasFind);
+    boolean[] hasVisited = new boolean[n];
+    for (int i = 0; i < n; i++) {
+        if (!hasVisited[i]) {
+            dfs(M, i, hasVisited);
             ret++;
         }
+
     }
     return ret;
 }
 
-private void dfs(int[][] M, int i, boolean[] hasFind) {
-    hasFind[i] = true;
-    int n = M.length;
-    for(int k = 0; k < n; k++) {
-        if(M[i][k] == 1 && !hasFind[k]) {
-            dfs(M, k, hasFind);
+private void dfs(int[][] M, int i, boolean[] hasVisited) {
+    hasVisited[i] = true;
+    for (int k = 0; k < M.length; k++) {
+        if (M[i][k] == 1 && !hasVisited[k]) {
+            dfs(M, k, hasVisited);
         }
     }
 }
@@ -949,11 +939,11 @@ private void dfs(char[][] grid, int i, int j) {
 [Leetcode : 257. Binary Tree Paths (Easy)](https://leetcode.com/problems/binary-tree-paths/description/)
 
 ```html
-  1
-/  \
+   1
+ /  \
 2    3
 \
-  5
+ 5
 ```
 ```html
 ["1->2->5", "1->3"]
@@ -976,6 +966,41 @@ private void dfs(TreeNode root, String prefix, List<String> ret){
     prefix += (root.val + "->");
     dfs(root.left, prefix, ret);
     dfs(root.right, prefix, ret);
+}
+```
+
+**IP 地址划分** 
+
+[Leetcode : 93. Restore IP Addresses(Medium)](https://leetcode.com/problems/restore-ip-addresses/description/)
+
+```html
+Given "25525511135",
+return ["255.255.11.135", "255.255.111.35"].
+```
+
+```java
+private List<String> ret;
+
+public List<String> restoreIpAddresses(String s) {
+    ret = new ArrayList<>();
+    doRestore(0, "", s);
+    return ret;
+}
+
+private void doRestore(int k, String path, String s) {
+    if (k == 4 || s.length() == 0) {
+        if (k == 4 && s.length() == 0) {
+            ret.add(path);
+        }
+        return;
+    }
+    for (int i = 0; i < s.length() && i <= 2; i++) {
+        if (i != 0 && s.charAt(0) == '0') break;
+        String part = s.substring(0, i + 1);
+        if (Integer.valueOf(part) <= 255) {
+            doRestore(k + 1, path.length() != 0 ? path + "." + part : part, s.substring(i + 1));
+        }
+    }
 }
 ```
 
@@ -1101,7 +1126,7 @@ private void dfs(int r, int c, boolean[][] canReach) {
 
 ### Backtracking
 
-回溯是 DFS 的一种，它不是用在遍历图的节点上，而是用于求解  **排列组合**  问题，例如有 { 'a','b','c' } 三个字符，求解所有由这三个字符排列得到的字符串。
+回溯属于 DF，它不是用在遍历图的节点上，而是用于求解  **排列组合**  问题，例如有 { 'a','b','c' } 三个字符，求解所有由这三个字符排列得到的字符串。
 
 在程序实现时，回溯需要注意对元素进行标记的问题。使用递归实现的回溯，在访问一个新元素进入新的递归调用时，需要将新元素标记为已经访问，这样才能在继续递归调用时不用重复访问该元素；但是在递归返回时，需要将该元素标记为未访问，因为只需要保证在一个递归链中不同时访问一个元素，可以访问已经访问过但是不在当前递归链中的元素。
 
@@ -1121,20 +1146,21 @@ private static final String[] KEYS = {"", "", "abc", "def", "ghi", "jkl", "mno",
 
 public List<String> letterCombinations(String digits) {
     List<String> ret = new ArrayList<>();
-    if (digits != null && digits.length() != 0) {
-        combination("", digits, 0, ret);
-    }
+    if (digits == null || digits.length() == 0) return ret;
+    combination(new StringBuilder(), digits, ret);
     return ret;
 }
 
-private void combination(String prefix, String digits, int offset, List<String> ret) {
-    if (offset == digits.length()) {
-        ret.add(prefix);
+private void combination(StringBuilder prefix, String digits, List<String> ret) {
+    if (prefix.length() == digits.length()) {
+        ret.add(prefix.toString());
         return;
     }
-    String letters = KEYS[digits.charAt(offset) - '0'];
+    String letters = KEYS[digits.charAt(prefix.length()) - '0'];
     for (char c : letters.toCharArray()) {
-        combination(prefix + c, digits, offset + 1, ret);
+        prefix.append(c);
+        combination(prefix, digits, ret);
+        prefix.deleteCharAt(prefix.length() - 1); // 删除
     }
 }
 ```
@@ -1180,52 +1206,19 @@ private boolean dfs(char[][] board, String word, int start, int r, int c) {
     if (start == word.length()) {
         return true;
     }
-    if (r < 0 || r >= m || c < 0 || c >= n || board[r][c] != word.charAt(start) ||  visited[r][c] ) {
+    if (r < 0 || r >= m || c < 0 || c >= n || board[r][c] != word.charAt(start) || visited[r][c]) {
         return false;
     }
     visited[r][c] = true;
     for (int i = 0; i < shift.length; i++) {
         int nextR = r + shift[i][0];
         int nextC = c + shift[i][1];
-        if (dfs(board, word, start + 1, nextR, nextC)) return true;
+        if (dfs(board, word, start + 1, nextR, nextC)) {
+            return true;
+        }
     }
     visited[r][c] = false;
     return false;
-}
-```
-
-**IP 地址划分** 
-
-[Leetcode : 93. Restore IP Addresses(Medium)](https://leetcode.com/problems/restore-ip-addresses/description/)
-
-```html
-Given "25525511135",
-return ["255.255.11.135", "255.255.111.35"].
-```
-
-```java
-private List<String> ret;
-
-public List<String> restoreIpAddresses(String s) {
-    ret = new ArrayList<>();
-    doRestore(0, "", s);
-    return ret;
-}
-
-private void doRestore(int k, String path, String s) {
-    if (k == 4 || s.length() == 0) {
-        if (k == 4 && s.length() == 0) {
-            ret.add(path);
-        }
-        return;
-    }
-    for (int i = 0; i < s.length() && i <= 2; i++) {
-        if (i != 0 && s.charAt(0) == '0') break;
-        String part = s.substring(0, i + 1);
-        if (Integer.valueOf(part) <= 255) {
-            doRestore(k + 1, path.length() != 0 ? path + "." + part : part, s.substring(i + 1));
-        }
-    }
 }
 ```
 
@@ -1296,12 +1289,12 @@ public List<List<Integer>> permuteUnique(int[] nums) {
 
 private void backtracking(List<Integer> permuteList, boolean[] visited, int[] nums, List<List<Integer>> ret) {
     if (permuteList.size() == nums.length) {
-        ret.add(new ArrayList(permuteList));
+        ret.add(new ArrayList(permuteList)); // 重新构造一个 List
         return;
     }
 
     for (int i = 0; i < visited.length; i++) {
-        if (i != 0 && nums[i] == nums[i - 1] && !visited[i - 1]) continue;
+        if (i != 0 && nums[i] == nums[i - 1] && !visited[i - 1]) continue; // 防止重复
         if (visited[i]) continue;
         visited[i] = true;
         permuteList.add(nums[i]);
@@ -1338,7 +1331,7 @@ public List<List<Integer>> combine(int n, int k) {
 
 private void backtracking(int start, int n, int k, List<Integer> combineList, List<List<Integer>> ret){
     if(k == 0){
-        ret.add(new ArrayList(combineList)); // 这里要重新构造一个 List
+        ret.add(new ArrayList(combineList));
         return;
     }
 
@@ -1440,7 +1433,7 @@ private List<Integer> subsetList;
 public List<List<Integer>> subsets(int[] nums) {
     ret = new ArrayList<>();
     subsetList = new ArrayList<>();
-    for (int i = 0; i <= nums.length; i++) {
+    for (int i = 0; i <= nums.length; i++) { // 不同的子集大小
         backtracking(0, i, nums);
     }
     return ret;
@@ -1841,9 +1834,8 @@ private int rob(int[] nums, int first, int last) {
 
 定义一个数组 dp 存储错误方式数量，dp[i] 表示前 i 个信和信封的错误方式数量。假设第 i 个信装到第 j 个信封里面，而第 j 个信装到第 k 个信封里面。根据 i 和 k 是否相等，有两种情况：
 
-① i==k，交换 i 和 k 的信后，它们的信和信封在正确的位置，但是其余 i-2 封信有 dp[i-2] 种错误装信的方式。由于 j 有 i-1 种取值，因此共有 (i-1)\*dp[i-2] 种错误装信方式。
-
-② i != k，交换 i 和 j 的信后，第 i 个信和信封在正确的位置，其余 i-1 封信有 dp[i-1] 种错误装信方式。由于 j 有 i-1 种取值，因此共有 (n-1)\*dp[i-1] 种错误装信方式。
+- i==k，交换 i 和 k 的信后，它们的信和信封在正确的位置，但是其余 i-2 封信有 dp[i-2] 种错误装信的方式。由于 j 有 i-1 种取值，因此共有 (i-1)\*dp[i-2] 种错误装信方式。
+- i != k，交换 i 和 j 的信后，第 i 个信和信封在正确的位置，其余 i-1 封信有 dp[i-1] 种错误装信方式。由于 j 有 i-1 种取值，因此共有 (n-1)\*dp[i-1] 种错误装信方式。
 
 综上所述，错误装信数量方式数量为：
 
@@ -1898,7 +1890,10 @@ len = 2  :      [4, 5], [5, 6]      => tails[1] = 5
 len = 3  :      [4, 5, 6]           => tails[2] = 6
 ```
 
-对于一个元素 x，如果它大于 tails 数组所有的值，那么把它添加到 tails 后面；如果 tails[i-1] < x <= tails[i]，那么更新 tails[i] = x 。
+对于一个元素 x，
+
+- 如果它大于 tails 数组所有的值，那么把它添加到 tails 后面，表示最长递增子序列长度加 1；
+- 如果 tails[i-1] < x <= tails[i]，那么更新 tails[i] = x。
 
 可以看出 tails 数组保持有序，因此在查找 S<sub>i</sub> 位于 tails 数组的位置时就可以使用二分查找。
 
@@ -1923,6 +1918,43 @@ private int binarySearch(int[] nums, int first, int last, int key) {
         else first = mid + 1;
     }
     return first;
+}
+```
+
+**一组整数对能够构成的最长链** 
+
+[Leetcode : 646. Maximum Length of Pair Chain (Medium)](https://leetcode.com/problems/maximum-length-of-pair-chain/description/)
+
+```html
+Input: [[1,2], [2,3], [3,4]]
+Output: 2
+Explanation: The longest chain is [1,2] -> [3,4]
+```
+
+对于 (a, b) 和 (c, d) ，如果 b < c，则它们可以构成一条链。
+
+```java
+public int findLongestChain(int[][] pairs) {
+    if(pairs == null || pairs.length == 0) {
+        return 0;
+    }
+    Arrays.sort(pairs, (a, b) -> (a[0] - b[0]));
+    int n = pairs.length;
+    int[] dp = new int[n];
+    Arrays.fill(dp, 1);
+    for(int i = 0; i < n; i++) {
+        for(int j = 0; j < i; j++) {
+            if(pairs[i][0] > pairs[j][1]){
+                dp[i] = Math.max(dp[i], dp[j] + 1);
+            }
+        }
+    }
+
+    int ret = 0;
+    for(int num : dp) {
+        ret = Math.max(ret, num);
+    }
+    return ret;
 }
 ```
 
@@ -1960,17 +1992,16 @@ public int wiggleMaxLength(int[] nums) {
 }
 ```
 
-### 最长公共子系列
+### 最长公共子序列
 
 对于两个子序列 S1 和 S2，找出它们最长的公共子序列。
 
 定义一个二维数组 dp 用来存储最长公共子序列的长度，其中 dp[i][j] 表示 S1 的前 i 个字符与 S2 的前 j 个字符最长公共子序列的长度。考虑 S1<sub>i</sub> 与 S2<sub>j</sub> 值是否相等，分为两种情况：
 
-① 当 S1<sub>i</sub>==S2<sub>j</sub> 时，那么就能在 S1 的前 i-1 个字符与 S2 的前 j-1 个字符最长公共子序列的基础上再加上 S1<sub>i</sub> 这个值，最长公共子序列长度加 1 ，即 dp[i][j] = dp[i-1][j-1] + 1。
+- 当 S1<sub>i</sub>==S2<sub>j</sub> 时，那么就能在 S1 的前 i-1 个字符与 S2 的前 j-1 个字符最长公共子序列的基础上再加上 S1<sub>i</sub> 这个值，最长公共子序列长度加 1 ，即 dp[i][j] = dp[i-1][j-1] + 1。
+- 当 S1<sub>i</sub> != S2<sub>j</sub> 时，此时最长公共子序列为 S1 的前 i-1 个字符和 S2 的前 j 个字符最长公共子序列，与 S1 的前 i 个字符和 S2 的前 j-1 个字符最长公共子序列，它们的最大者，即 dp[i][j] = max{ dp[i-1][j], dp[i][j-1] }。
 
-② 当 S1<sub>i</sub> != S2<sub>j</sub> 时，此时最长公共子序列为 S1 的前 i-1 个字符和 S2 的前 j 个字符最长公共子序列，与 S1 的前 i 个字符和 S2 的前 j-1 个字符最长公共子序列，它们的最大者，即 dp[i][j] = max{ dp[i-1][j], dp[i][j-1] }。
-
-综上，最长公共子系列的状态转移方程为：
+综上，最长公共子序列的状态转移方程为：
 
 <div align="center"><img src="https://latex.codecogs.com/gif.latex?dp[i][j]=\left\{\begin{array}{rcl}dp[i-1][j-1]&&{S1_i==S2_j}\\max(dp[i-1][j],dp[i][j-1])&&{S1_i<>S2_j}\end{array}\right."/></div> <br>
 
@@ -1978,9 +2009,9 @@ public int wiggleMaxLength(int[] nums) {
 
 与最长递增子序列相比，最长公共子序列有以下不同点：
 
-① 针对的是两个序列，求它们的最长公共子序列。
-② 在最长递增子序列中，dp[i] 表示以 S<sub>i</sub> 为结尾的最长递增子序列长度，子序列必须包含 S<sub>i</sub> ；在最长公共子序列中，dp[i][j] 表示 S1 中前 i 个字符与 S2 中前 j 个字符的最长公共子序列长度，不一定包含 S1<sub>i</sub> 和 S2<sub>j</sub> 。
-③ 由于 2 ，在求最终解时，最长公共子序列中 dp[N][M] 就是最终解，而最长递增子序列中 dp[N] 不是最终解，因为以 S<sub>N</sub> 为结尾的最长递增子序列不一定是整个序列最长递增子序列，需要遍历一遍 dp 数组找到最大者。
+- 针对的是两个序列，求它们的最长公共子序列。
+- 在最长递增子序列中，dp[i] 表示以 S<sub>i</sub> 为结尾的最长递增子序列长度，子序列必须包含 S<sub>i</sub> ；在最长公共子序列中，dp[i][j] 表示 S1 中前 i 个字符与 S2 中前 j 个字符的最长公共子序列长度，不一定包含 S1<sub>i</sub> 和 S2<sub>j</sub> 。
+- 由于 2 ，在求最终解时，最长公共子序列中 dp[N][M] 就是最终解，而最长递增子序列中 dp[N] 不是最终解，因为以 S<sub>N</sub> 为结尾的最长递增子序列不一定是整个序列最长递增子序列，需要遍历一遍 dp 数组找到最大者。
 
 ```java
 public int lengthOfLCS(int[] nums1, int[] nums2) {
@@ -2002,8 +2033,8 @@ public int lengthOfLCS(int[] nums1, int[] nums2) {
 
 定义一个二维数组 dp 存储最大价值，其中 dp[i][j] 表示体积不超过 j 的情况下，前 i 件物品能达到的最大价值。设第 i 件物品体积为 w，价值为 v，根据第 i 件物品是否添加到背包中，可以分两种情况讨论：
 
-① 第 i 件物品没添加到背包，总体积不超过 j 的前 i 件物品的最大价值就是总体积不超过 j 的前 i-1 件物品的最大价值，dp[i][j] = dp[i-1][j]。
-② 第 i 件物品添加到背包中，dp[i][j] = dp[i-1][j-w] + v。
+- 第 i 件物品没添加到背包，总体积不超过 j 的前 i 件物品的最大价值就是总体积不超过 j 的前 i-1 件物品的最大价值，dp[i][j] = dp[i-1][j]。
+- 第 i 件物品添加到背包中，dp[i][j] = dp[i-1][j-w] + v。
 
 第 i 件物品可添加也可以不添加，取决于哪种情况下最大价值更大。
 
@@ -2013,19 +2044,18 @@ public int lengthOfLCS(int[] nums1, int[] nums2) {
 
 ```java
 public int knapsack(int W, int N, int[] weights, int[] values) {
-    int[][] dp = new int[N][W];
-    for (int i = W - 1; i >= 0; i--) {
-        dp[0][i] = i > weights[0] ? values[0] : 0;
-    }
-    for (int i = 1; i < N; i++) {
-        for (int j = W - 1; j >= weights[i]; j--) {
-            dp[i][j] = Math.max(dp[i - 1][j], dp[i - 1][j - weights[i]] + values[i]);
+    int[][] dp = new int[N + 1][W + 1];
+    for (int i = 1; i <= N; i++) {
+        int w = weights[i - 1], v = values[i - 1];
+        for (int j = 1; j <= W; j++) {
+            if (j >= w) {
+                dp[i][j] = Math.max(dp[i - 1][j], dp[i - 1][j - w] + v);
+            } else {
+                dp[i][j] = dp[i - 1][j];
+            }
         }
-        for (int j = weights[i] - 1; j >= 0; j--) {
-            dp[i][j] = dp[i - 1][j];
-        }
     }
-    return dp[N - 1][W - 1];
+    return dp[N][W];
 }
 ```
 
@@ -2035,7 +2065,22 @@ public int knapsack(int W, int N, int[] weights, int[] values) {
 
 <div align="center"><img src="https://latex.codecogs.com/gif.latex?dp[j]=max(dp[j],dp[j-w]+v)"/></div> <br>
 
-因为 dp[j-w] 表示 dp[i-1][j-w]，因此不能先求 dp[i][j-w] 防止将 dp[i-1][j-w] 覆盖。也就是说要先计算 dp[i][j] 再计算 dp[i][j-w]，在程序实现时需要按倒序来循环求解。
+因为 dp[j-w] 表示 dp[i-1][j-w]，因此不能先求 dp[i][j-w]，以防止将 dp[i-1][j-w] 覆盖。也就是说要先计算 dp[i][j] 再计算 dp[i][j-w]，在程序实现时需要按倒序来循环求解。
+
+```java
+public int knapsack(int W, int N, int[] weights, int[] values) {
+    int[] dp = new int[W + 1];
+    for (int i = 1; i <= N; i++) {
+        int w = weights[i - 1], v = values[i - 1];
+        for (int j = W; j >= 1; j--) {
+            if (j >= w) {
+                dp[j] = Math.max(dp[j], dp[j - w] + v);
+            }
+        }
+    }
+    return dp[W];
+}
+```
 
 **无法使用贪心算法的解释** 
 
@@ -2049,13 +2094,13 @@ public int knapsack(int W, int N, int[] weights, int[] values) {
 
 **变种** 
 
-完全背包：物品可以无限个，可以转换为 0-1 背包，令每种物品的体积和价值变为 1/2/4... 倍数，把它们都当成一个新物品，然后一种物品只能添加一次。
+- 完全背包：物品数量为无限个
 
-多重背包：物品数量有限制，同样可以转换为 0-1 背包。
+- 多重背包：物品数量有限制
 
-多维费用背包：物品不仅有重量，还有体积，同时考虑这两种限制。
+- 多维费用背包：物品不仅有重量，还有体积，同时考虑这两种限制
 
-其它：物品之间相互约束或者依赖。
+- 其它：物品之间相互约束或者依赖
 
 **划分数组为和相等的两部分** 
 
@@ -2069,33 +2114,25 @@ Output: true
 Explanation: The array can be partitioned as [1, 5, 5] and [11].
 ```
 
-可以看成一个背包大小为 sum/2 的 0-1 背包问题，但是也有不同的地方，这里没有价值属性，并且背包必须被填满。
-
-以下实现使用了空间优化。
+可以看成一个背包大小为 sum/2 的 0-1 背包问题。
 
 ```java
-public boolean canPartition(int[] nums) {
-    int sum = 0;
-    for (int num : nums) {
-        sum += num;
-    }
-    if (sum % 2 != 0) {
-        return false;
-    }
-    int W = sum / 2;
-    boolean[] dp = new boolean[W + 1];
-    for (int i = 0; i <= W; i++) {
-        if (nums[0] == i) {
-            dp[i] = true;
-        }
-    }
-    for (int i = 1; i < nums.length; i++) {
-        for (int j = W; j >= nums[i]; j--) {
-            dp[j] = dp[j] || dp[j - nums[i]];
-        }
-    }
-    return dp[W];
-}
+ public boolean canPartition(int[] nums) {
+     int sum = 0;
+     for (int num : nums) sum += num;
+     if (sum % 2 != 0) return false;
+     int W = sum / 2;
+     boolean[] dp = new boolean[W + 1];
+     dp[0] = true;
+     for (int num : nums) {               // 0-1 背包一个物品只能用一次
+         for (int i = W; i >= 0; i--) {   // 从后往前，先计算 dp[i] 再计算 dp[i-num]
+             if (num <= i) {
+                 dp[i] = dp[i] || dp[i - num];
+             }
+         }
+     }
+     return dp[W];
+ }
 ```
 
 **字符串按单词列表分割** 
@@ -2108,15 +2145,20 @@ dict = ["leet", "code"].
 Return true because "leetcode" can be segmented as "leet code".
 ```
 
+这是一个完全背包问题，和 0-1 背包不同的是，完全背包中物品可以使用多次。在这一题当中，词典中的单词可以被使用多次。
+
+0-1 背包和完全背包在实现上的不同之处是，0-1 背包对物品的迭代是在最外层，而完全背包对物品的迭代是在最里层。
+
 ```java
 public boolean wordBreak(String s, List<String> wordDict) {
     int n = s.length();
     boolean[] dp = new boolean[n + 1];
     dp[0] = true;
     for (int i = 1; i <= n; i++) {
-        for (String word : wordDict) {
-            if (word.length() <= i && word.equals(s.substring(i - word.length(), i))) {
-                dp[i] = dp[i] || dp[i - word.length()];
+        for (String word : wordDict) { // 每个单词可以使用多次
+            int len = word.length();
+            if (len <= i && word.equals(s.substring(i - len, i))) {
+                dp[i] = dp[i] || dp[i - len];
             }
         }
     }
@@ -2142,7 +2184,9 @@ Explanation:
 There are 5 ways to assign symbols to make the sum of nums be target 3.
 ```
 
-该问题可以转换为 subset sum 问题，从而使用 0-1 背包的方法来求解。可以将这组数看成两部分，P 和 N，其中 P 使用正号，N 使用负号，有以下推导：
+该问题可以转换为 Subset Sum 问题，从而使用 0-1 背包的方法来求解。
+
+可以将这组数看成两部分，P 和 N，其中 P 使用正号，N 使用负号，有以下推导：
 
 ```html
                   sum(P) - sum(N) = target
@@ -2155,26 +2199,34 @@ sum(P) + sum(N) + sum(P) - sum(N) = target + sum(P) + sum(N)
 ```java
 public int findTargetSumWays(int[] nums, int S) {
     int sum = 0;
-    for (int num : nums) {
-        sum += num;
-    }
-    if (sum < S || (sum + S) % 2 == 1) {
-        return 0;
-    }
-    return subsetSum(nums, (sum + S) >>> 1);
-}
-
-private int subsetSum(int[] nums, int targetSum) {
-    Arrays.sort(nums);
-    int[] dp = new int[targetSum + 1];
+    for (int num : nums) sum += num;
+    if (sum < S || (sum + S) % 2 == 1) return 0;
+    int W = (sum + S) / 2;
+    int[] dp = new int[W + 1];
     dp[0] = 1;
-    for (int i = 0; i < nums.length; i++) {
-        int num = nums[i];
-        for (int j = targetSum; j >= num; j--) {
-            dp[j] = dp[j] + dp[j - num];
+    for (int num : nums) {
+        for (int i = W; i >= 0; i--) {
+            if (num <= i) {
+                dp[i] = dp[i] + dp[i - num];
+            }
         }
     }
-    return dp[targetSum];
+    return dp[W];
+}
+```
+
+DFS 解法：
+
+```java
+public int findTargetSumWays(int[] nums, int S) {
+    return findTargetSumWays(nums, 0, S);
+}
+
+private int findTargetSumWays(int[] nums, int start, int S) {
+    if (start == nums.length) {
+        return S == 0 ? 1 : 0;
+    }
+    return findTargetSumWays(nums, start + 1, S + nums[start]) + findTargetSumWays(nums, start + 1, S - nums[start]);
 }
 ```
 
@@ -2186,7 +2238,7 @@ private int subsetSum(int[] nums, int targetSum) {
 Input: Array = {"10", "0001", "111001", "1", "0"}, m = 5, n = 3
 Output: 4
 
-Explanation: This are totally 4 strings can be formed by the using of 5 0s and 3 1s, which are “10,”0001”,”1”,”0”
+Explanation: There are totally 4 strings can be formed by the using of 5 0s and 3 1s, which are "10","0001","1","0"
 ```
 
 这是一个多维费用的 0-1 背包问题，有两个背包大小，0 的数量和 1 的数量。
@@ -2195,16 +2247,15 @@ Explanation: This are totally 4 strings can be formed by the using of 5 0s and 3
 public int findMaxForm(String[] strs, int m, int n) {
     if (strs == null || strs.length == 0) return 0;
     int[][] dp = new int[m + 1][n + 1];
-    for (int i = 0; i < strs.length; i++) {
-        String s = strs[i];
+    for (String s : strs) { // 每个字符串只能用一次
         int ones = 0, zeros = 0;
         for (char c : s.toCharArray()) {
             if (c == '0') zeros++;
-            else if (c == '1') ones++;
+            else ones++;
         }
-        for (int j = m; j >= zeros; j--) {
-            for (int k = n; k >= ones; k--) {
-                dp[j][k] = Math.max(dp[j][k], dp[j - zeros][k - ones] + 1);
+        for (int i = m; i >= zeros; i--) {
+            for (int j = n; j >= ones; j--) {
+                dp[i][j] = Math.max(dp[i][j], dp[i - zeros][j - ones] + 1);
             }
         }
     }
@@ -2228,18 +2279,19 @@ return -1.
 
 题目描述：给一些面额的硬币，要求用这些硬币来组成给定面额的钱数，并且使得硬币数量最少。硬币可以重复使用。
 
-这是一个完全背包问题，完全背包问题和 0-1 背包问题在实现上唯一的不同是，第二层循环是从 0 开始的，而不是从尾部开始。
+这是一个完全背包问题。
 
 ```java
 public int coinChange(int[] coins, int amount) {
     if (coins == null || coins.length == 0) return 0;
-    Arrays.sort(coins);
     int[] dp = new int[amount + 1];
     Arrays.fill(dp, amount + 1);
     dp[0] = 0;
     for (int i = 1; i <= amount; i++) {
-        for (int j = 0; j < coins.length && coins[j] <= i; j++) {
-            dp[i] = Math.min(dp[i], dp[i - coins[j]] + 1);
+        for (int c : coins) {
+            if (c <= i) {
+                dp[i] = Math.min(dp[i], dp[i - c] + 1);
+            }
         }
     }
     return dp[amount] > amount ? -1 : dp[amount];
@@ -2268,37 +2320,21 @@ Note that different sequences are counted as different combinations.
 Therefore the output is 7.
 ```
 
+完全背包。
+
 ```java
 public int combinationSum4(int[] nums, int target) {
     if (nums == null || nums.length == 0) return 0;
     int[] dp = new int[target + 1];
     dp[0] = 1;
     for (int i = 1; i <= target; i++) {
-        for (int j = 0; j < nums.length; j++) {
-            if (nums[j] <= i) {
-                dp[i] += dp[i - nums[j]];
+        for (int num : nums) {
+            if (num <= i) {
+                dp[i] += dp[i - num];
             }
         }
     }
     return dp[target];
-}
-```
-
-**只能进行两次的股票交易** 
-
-[Leetcode : 123. Best Time to Buy and Sell Stock III (Hard)](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/description/)
-
-```java
-public int maxProfit(int[] prices) {
-    int firstBuy = Integer.MIN_VALUE, firstSell = 0;
-    int secondBuy = Integer.MIN_VALUE, secondSell = 0;
-    for (int curPrice : prices) {
-        if (firstBuy < -curPrice) firstBuy = -curPrice;
-        if (firstSell < firstBuy + curPrice) firstSell = firstBuy + curPrice;
-        if (secondBuy < firstSell - curPrice) secondBuy = firstSell - curPrice;
-        if (secondSell < secondBuy + curPrice) secondSell = secondBuy + curPrice;
-    }
-    return secondSell;
 }
 ```
 
@@ -2307,7 +2343,8 @@ public int maxProfit(int[] prices) {
 [Leetcode : 188. Best Time to Buy and Sell Stock IV (Hard)](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/description/)
 
 ```html
-dp[i, j] = max(dp[i, j-1], prices[j] - prices[jj] + dp[i-1, jj]) { jj in range of [0, j-1] } = max(dp[i, j-1], prices[j] + max(dp[i-1, jj] - prices[jj]))
+dp[i, j] = max(dp[i, j-1], prices[j] - prices[jj] + dp[i-1, jj]) { jj in range of [0, j-1] }
+         = max(dp[i, j-1], prices[j] + max(dp[i-1, jj] - prices[jj]))
 ```
 
 ```java
@@ -2330,6 +2367,24 @@ public int maxProfit(int k, int[] prices) {
         }
     }
     return dp[k][n - 1];
+}
+```
+
+**只能进行两次的股票交易** 
+
+[Leetcode : 123. Best Time to Buy and Sell Stock III (Hard)](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/description/)
+
+```java
+public int maxProfit(int[] prices) {
+    int firstBuy = Integer.MIN_VALUE, firstSell = 0;
+    int secondBuy = Integer.MIN_VALUE, secondSell = 0;
+    for (int curPrice : prices) {
+        if (firstBuy < -curPrice) firstBuy = -curPrice;
+        if (firstSell < firstBuy + curPrice) firstSell = firstBuy + curPrice;
+        if (secondBuy < firstSell - curPrice) secondBuy = firstSell - curPrice;
+        if (secondSell < secondBuy + curPrice) secondSell = secondBuy + curPrice;
+    }
+    return secondSell;
 }
 ```
 
@@ -2446,9 +2501,35 @@ public int minDistance(String word1, String word2) {
 }
 ```
 
-**修改一个字符串称为另一个字符串**  // TODO
+**修改一个字符串称为另一个字符串** 
 
 [Leetcode : 72. Edit Distance (Hard)](https://leetcode.com/problems/edit-distance/description/)
+
+```java
+public int minDistance(String word1, String word2) {
+    if (word1 == null || word2 == null) {
+        return 0;
+    }
+    int m = word1.length(), n = word2.length();
+    int[][] dp = new int[m + 1][n + 1];
+    for (int i = 1; i <= m; i++) {
+        dp[i][0] = i;
+    }
+    for (int i = 1; i <= n; i++) {
+        dp[0][i] = i;
+    }
+    for (int i = 1; i <= m; i++) {
+        for (int j = 1; j <= n; j++) {
+            if (word1.charAt(i - 1) == word2.charAt(j - 1)) {
+                dp[i][j] = dp[i - 1][j - 1];
+            } else {
+                dp[i][j] = Math.min(dp[i - 1][j - 1], Math.min(dp[i][j - 1], dp[i - 1][j])) + 1;
+            }
+        }
+    }
+    return dp[m][n];
+}
+```
 
 ### 分割整数
 
@@ -2552,6 +2633,20 @@ public int uniquePaths(int m, int n) {
 }
 ```
 
+也可以直接用数学公式求解，这是一个组合问题。机器人总共移动的次数 S=m+n-2，向下移动的次数 D=m-1，那么问题可以看成从 S 从取出 D 个位置的组合数量，这个问题的解为 C(S, D)。
+
+```java
+public int uniquePaths(int m, int n) {
+    int S = m + n - 2; // 总共的移动次数
+    int D = m - 1;     // 向下的移动次数
+    long ret = 1;
+    for (int i = 1; i <= D; i++) {
+        ret = ret * (S - D + i) / i;
+    }
+    return (int) ret;
+}
+```
+
 **矩阵的最小路径和** 
 
 [Leetcode : 64. Minimum Path Sum (Medium)](https://leetcode.com/problems/minimum-path-sum/description/)
@@ -2616,43 +2711,6 @@ public int maxProfit(int[] prices) {
 }
 ```
 
-**一组整数对能够构成的最长链** 
-
-[Leetcode : 646. Maximum Length of Pair Chain (Medium)](https://leetcode.com/problems/maximum-length-of-pair-chain/description/)
-
-```html
-Input: [[1,2], [2,3], [3,4]]
-Output: 2
-Explanation: The longest chain is [1,2] -> [3,4]
-```
-
-对于 (a, b) 和 (c, d) ，如果 b < c，则它们可以构成一条链。
-
-```java
-public int findLongestChain(int[][] pairs) {
-    if(pairs == null || pairs.length == 0) {
-        return 0;
-    }
-    Arrays.sort(pairs, (a, b) -> (a[0] - b[0]));
-    int n = pairs.length;
-    int[] dp = new int[n];
-    Arrays.fill(dp, 1);
-    for(int i = 0; i < n; i++) {
-        for(int j = 0; j < i; j++) {
-            if(pairs[i][0] > pairs[j][1]){
-                dp[i] = Math.max(dp[i], dp[j] + 1);
-            }
-        }
-    }
-
-    int ret = 0;
-    for(int num : dp) {
-        ret = Math.max(ret, num);
-    }
-    return ret;
-}
-```
-
 **买入和售出股票最大的收益** 
 
 [Leetcode : 121. Best Time to Buy and Sell Stock (Easy)](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/description/)
@@ -2678,6 +2736,18 @@ public int maxProfit(int[] prices) {
 **复制粘贴字符** 
 
 [Leetcode : 650. 2 Keys Keyboard (Medium)](https://leetcode.com/problems/2-keys-keyboard/description/)
+
+题目描述：最开始只有一个字符 A，问需要多少次操作能够得到 n 个字符 A，每次操作可以复制当前所有的字符，或者粘贴。
+
+```
+Input: 3
+Output: 3
+Explanation:
+Intitally, we have one character 'A'.
+In step 1, we use Copy All operation.
+In step 2, we use Paste operation to get 'AA'.
+In step 3, we use Paste operation to get 'AAA'.
+```
 
 ```java
 public int minSteps(int n) {
@@ -2750,12 +2820,11 @@ public int countPrimes(int n) {
 
 ```java
 int gcd(int a, int b) {
-    if (b == 0) return a;
-    return gcd(b, a % b);
+    return b == 0 ? a : gcd(b, a% b);
 }
 ```
 
-最大公倍数为两数的乘积除以最大公约数。
+最小公倍数为两数的乘积除以最大公约数。
 
 ```java
 int lcm(int a, int b){
@@ -2767,16 +2836,14 @@ int lcm(int a, int b){
 
 对于 a 和 b 的最大公约数 f(a, b)，有：
 
-1\. 如果 a 和 b 均为偶数，f(a, b) = 2\*f(a/2, b/2);
-2\. 如果 a 是偶数 b 是奇数，f(a, b) = f(a/2, b);
-3\. 如果 b 是偶数 a 是奇数，f(a, b) = f(a, b/2);
-4\. 如果 a 和 b 均为奇数，f(a, b) = f(a, a-b);
+- 如果 a 和 b 均为偶数，f(a, b) = 2\*f(a/2, b/2);
+- 如果 a 是偶数 b 是奇数，f(a, b) = f(a/2, b);
+- 如果 b 是偶数 a 是奇数，f(a, b) = f(a, b/2);
+- 如果 a 和 b 均为奇数，f(a, b) = f(a, a-b);
 
 乘 2 和除 2 都可以转换为移位操作。
 
 ### 进制转换
-
-Java 中 static String toString(int num, int radix) 可以将一个整数装换为 redix 进制表示的字符串。
 
 **7 进制** 
 
@@ -2784,13 +2851,32 @@ Java 中 static String toString(int num, int radix) 可以将一个整数装换�
 
 ```java
 public String convertToBase7(int num) {
-    if (num < 0) {
-        return '-' + convertToBase7(-num);
-    }
-    if (num < 7) {
-        return num + "";
-    }
+    if (num < 0) return '-' + convertToBase7(-num);
+    if (num < 7) return num + "";
     return convertToBase7(num / 7) + num % 7;
+}
+```
+
+```java
+public String convertToBase7(int num) {
+    if (num == 0) return "0";
+    StringBuilder sb = new StringBuilder();
+    boolean isNegative = num < 0;
+    if (isNegative) num = -num;
+    while (num > 0) {
+        sb.append(num % 7);
+        num /= 7;
+    }
+    String ret = sb.reverse().toString();
+    return isNegative ? "-" + ret : ret;
+}
+```
+
+Java 中 static String toString(int num, int radix) 可以将一个整数转换为 redix 进制表示的字符串。
+
+```java
+public String convertToBase7(int num) {
+    return Integer.toString(num, 7);
 }
 ```
 
@@ -2798,16 +2884,32 @@ public String convertToBase7(int num) {
 
 [Leetcode : 405. Convert a Number to Hexadecimal (Easy)](https://leetcode.com/problems/convert-a-number-to-hexadecimal/description/)
 
+负数要用它的补码形式。
+
+```html
+Input:
+26
+
+Output:
+"1a"
+
+Input:
+-1
+
+Output:
+"ffffffff"
+```
+
 ```java
 public String toHex(int num) {
     char[] map = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
     if(num == 0) return "0";
-    String ret = "";
+    StringBuilder sb = new StringBuilder();
     while(num != 0){
-        ret = map[(num & 0b1111)] + ret;
-        num >>>= 4;
+        sb.append(map[num & 0b1111]);
+        num >>>= 4; // 无符号右移，左边填 0
     }
-    return ret;
+    return sb.reverse().toString();
 }
 ```
 
@@ -2844,15 +2946,14 @@ Return "100".
 ```java
 public String addBinary(String a, String b) {
     int i = a.length() - 1, j = b.length() - 1, carry = 0;
-    String str = "";
-    while(i >= 0 || j >= 0){
-        if(i >= 0 && a.charAt(i--) == '1') carry++;
-        if(j >= 0 && b.charAt(j--) == '1') carry++;
-        str = (carry % 2) + str;
+    StringBuilder str = new StringBuilder();
+    while (carry == 1 || i >= 0 || j >= 0) {
+        if (i >= 0 && a.charAt(i--) == '1') carry++;
+        if (j >= 0 && b.charAt(j--) == '1') carry++;
+        str.append(carry % 2);
         carry /= 2;
     }
-    if(carry == 1) str = "1" + str;
-    return str;
+    return str.reverse().toString();
 }
 ```
 
@@ -2864,15 +2965,15 @@ public String addBinary(String a, String b) {
 
 ```java
 public String addStrings(String num1, String num2) {
-    StringBuilder sb = new StringBuilder();
-    int carry = 0;
-    for(int i = num1.length() - 1, j = num2.length() - 1; i >= 0 || j >= 0 || carry == 1; i--, j--){
-        int x = i < 0 ? 0 : num1.charAt(i) - '0';
-        int y = j < 0 ? 0 : num2.charAt(j) - '0';
-        sb.append((x + y + carry) % 10);
+    StringBuilder str = new StringBuilder();
+    int carry = 0, i = num1.length() - 1, j = num2.length() - 1;
+    while (carry == 1 || i >= 0 || j >= 0) {
+        int x = i < 0 ? 0 : num1.charAt(i--) - '0';
+        int y = j < 0 ? 0 : num2.charAt(j--) - '0';
+        str.append((x + y + carry) % 10);
         carry = (x + y + carry) / 10;
     }
-    return sb.reverse().toString();
+    return str.reverse().toString();
 }
 ```
 
@@ -2905,7 +3006,7 @@ Only two moves are needed (remember each move increments or decrements one eleme
 
 **解法 1** 
 
-先排序，时间复杂度：O(NlgN)
+先排序，时间复杂度：O(NlogN)
 
 ```java
 public int minMoves2(int[] nums) {
@@ -2923,7 +3024,7 @@ public int minMoves2(int[] nums) {
 
 **解法 2** 
 
-使用快速排序找到中位数，时间复杂度 O(N)
+使用快速选择找到中位数，时间复杂度 O(N)
 
 ```java
 public int minMoves2(int[] nums) {
@@ -2970,7 +3071,7 @@ public int majorityElement(int[] nums) {
 }
 ```
 
-可以利用 Boyer-Moore Majority Vote Algorithm 来解决这个问题，使得时间复杂度为 O(n)。可以这么理解该算法：使用 cnt 来统计一个元素出现的次数，当遍历到的元素和统计元素不想等时，令 cnt--。如果前面查找了 i 个元素，且 cnt == 0 ，说明前 i 个元素没有 majority，或者有 majority，但是出现的次数少于 i / 2 ，因为如果多于 i / 2 的话 cnt 就一定不会为 0 。此时剩下的 n - i 个元素中，majority 的数目依然多于 (n - i) / 2，因此继续查找就能找出 majority。
+可以利用 Boyer-Moore Majority Vote Algorithm 来解决这个问题，使得时间复杂度为 O(n)。可以这么理解该算法：使用 cnt 来统计一个元素出现的次数，当遍历到的元素和统计元素不相等时，令 cnt--。如果前面查找了 i 个元素，且 cnt == 0 ，说明前 i 个元素没有 majority，或者有 majority，但是出现的次数少于 i / 2 ，因为如果多于 i / 2 的话 cnt 就一定不会为 0 。此时剩下的 n - i 个元素中，majority 的数目依然多于 (n - i) / 2，因此继续查找就能找出 majority。
 
 ```java
 public int majorityElement(int[] nums) {
@@ -3076,29 +3177,15 @@ public int[] productExceptSelf(int[] nums) {
     int n = nums.length;
     int[] ret = new int[n];
     ret[0] = 1;
-    for(int i = 1; i < n; i++) {
-        ret[i] = ret[i - 1] * nums[i - 1];
+    int left = 1;
+    for (int i = 1; i < n; i++) {
+        ret[i] = left * nums[i - 1];
+        left *= nums[i - 1];
     }
     int right = 1;
-    for(int i = n - 1; i >= 0; i--) {
+    for (int i = n - 1; i >= 0; i--) {
         ret[i] *= right;
         right *= nums[i];
-    }
-    return ret;
-}
-```
-
-**统计从 0 \~ n 每个数的二进制表示中 1 的个数** 
-
-[Leetcode : 338. Counting Bits (Medium)](https://leetcode.com/problems/counting-bits/description/)
-
-对于数字 6(110)，它可以看成是数字 (10) 前面加上一个 1 ，因此 dp[i] = dp[i&(i-1)] + 1;
-
-```java
-public int[] countBits(int num) {
-    int[] ret = new int[num + 1];
-    for(int i = 1; i <= num; i++){
-        ret[i] = ret[i&(i-1)] + 1;
     }
     return ret;
 }
@@ -3115,16 +3202,16 @@ public int[] countBits(int num) {
 一个栈实现：
 
 ```java
-class  MyQueue {
+class MyQueue {
     private Stack<Integer> st = new Stack();
 
     public void push(int x) {
         Stack<Integer> temp = new Stack();
-        while(!st.isEmpty()){
+        while (!st.isEmpty()) {
             temp.push(st.pop());
         }
         st.push(x);
-        while(!temp.isEmpty()){
+        while (!temp.isEmpty()) {
             st.push(temp.pop());
         }
     }
@@ -3146,7 +3233,7 @@ class  MyQueue {
 两个栈实现：
 
 ```java
-class  MyQueue {
+class MyQueue {
     private Stack<Integer> in = new Stack();
     private Stack<Integer> out = new Stack();
 
@@ -3164,9 +3251,9 @@ class  MyQueue {
         return out.peek();
     }
 
-    private void in2out(){
-        if(out.isEmpty()){
-            while(!in.isEmpty()){
+    private void in2out() {
+        if (out.isEmpty()) {
+            while (!in.isEmpty()) {
                 out.push(in.pop());
             }
         }
@@ -3193,8 +3280,9 @@ class MyStack {
 
     public void push(int x) {
         queue.add(x);
-        for(int i = 1; i < queue.size(); i++){ // 翻转
-            queue.add(queue.remove());
+        int cnt = queue.size();
+        while (cnt-- > 1) {
+            queue.add(queue.poll());
         }
     }
 
@@ -3233,20 +3321,14 @@ class MinStack {
 
     public void push(int x) {
         dataStack.add(x);
-        if(x < min) {
-            min = x;
-        }
+        min = Math.min(min, x);
         minStack.add(min);
     }
 
     public void pop() {
         dataStack.pop();
         minStack.pop();
-        if(!minStack.isEmpty()) {
-            min = minStack.peek();
-        } else{
-            min = Integer.MAX_VALUE;
-        }
+        min = minStack.isEmpty() ? min = Integer.MAX_VALUE : minStack.peek();
     }
 
     public int top() {
@@ -3274,17 +3356,15 @@ Output : true
 ```java
 public boolean isValid(String s) {
     Stack<Character> stack = new Stack<>();
-    for(int i = 0; i < s.length(); i++){
-        char c = s.charAt(i);
-        if(c == '(' || c == '{' || c == '[') stack.push(c);
-        else{
-            if(stack.isEmpty()) return false;
+    for (char c : s.toCharArray()) {
+        if (c == '(' || c == '{' || c == '[') stack.push(c);
+        else {
+            if (stack.isEmpty()) return false;
             char cStack = stack.pop();
-            if(c == ')' && cStack != '(' ||
-              c == ']' && cStack != '[' ||
-              c == '}' && cStack != '{' ) {
-                return false;
-            }
+            boolean b1 = c == ')' && cStack != '(';
+            boolean b2 = c == ']' && cStack != '[';
+            boolean b3 = c == '}' && cStack != '{';
+            if (b1 || b2 || b3) return false;
         }
     }
     return stack.isEmpty();
@@ -3383,9 +3463,9 @@ HashMap 也可以用来对元素进行计数统计，此时键为元素，值为
 
 [Leetcode : 1. Two Sum (Easy)](https://leetcode.com/problems/two-sum/description/)
 
-可以先对数组进行排序，然后使用双指针方法或者二分查找方法。这样做的时间复杂度为 O(nlg<sub>n</sub>)，空间复杂度为 O(1)。
+可以先对数组进行排序，然后使用双指针方法或者二分查找方法。这样做的时间复杂度为 O(NlogN)，空间复杂度为 O(1)。
 
-用 HashMap 存储数组元素和索引的映射，在访问到 nums[i] 时，判断 HashMap 中是否存在 target - nums[i] ，如果存在说明 target - nums[i] 所在的索引和 i 就是要找的两个数。该方法的时间复杂度为 O(n)，空间复杂度为 O(n)，使用空间来换取时间。
+用 HashMap 存储数组元素和索引的映射，在访问到 nums[i] 时，判断 HashMap 中是否存在 target - nums[i] ，如果存在说明 target - nums[i] 所在的索引和 i 就是要找的两个数。该方法的时间复杂度为 O(N)，空间复杂度为 O(N)，使用空间来换取时间。
 
 ```java
 public int[] twoSum(int[] nums, int target) {
@@ -3531,7 +3611,7 @@ Output: 6
 Explanation: Six palindromic strings: "a", "a", "a", "aa", "aa", "aaa".
 ```
 
-解决方案是从字符串的某一位开始，尝试着去扩展子字符串。
+从字符串的某一位开始，尝试着去扩展子字符串。
 
 ```java
 private int cnt = 0;
@@ -3621,14 +3701,9 @@ For example, given nums = [0, 1, 0, 3, 12], after calling your function, nums sh
 
 ```java
 public void moveZeroes(int[] nums) {
-    int n = nums.length;
     int idx = 0;
-    for(int i = 0; i < n; i++){
-        if(nums[i] != 0) nums[idx++] = nums[i];
-    }
-    while(idx < n){
-        nums[idx++] = 0;
-    }
+    for (int num : nums) if (num != 0) nums[idx++] = num;
+    while (idx < nums.length) nums[idx++] = 0;
 }
 ```
 
@@ -3643,9 +3718,14 @@ Input: nums = [1,2,2,4]
 Output: [2,3]
 ```
 
+```html
+Input: nums = [1,2,2,4]
+Output: [2,3]
+```
+
 最直接的方法是先对数组进行排序，这种方法时间复杂度为 O(nlogn)。本题可以以 O(n) 的时间复杂度、O(1) 空间复杂度来求解。
 
-主要思想是让通过交换数组元素，使得数组上的元素在正确的位置上。
+主要思想是通过交换数组元素，使得数组上的元素在正确的位置上。
 
 遍历数组，如果第 i 位上的元素不是 i + 1 ，那么就交换第 i 位 和 nums[i] - 1 位上的元素，使得 num[i] - 1 的元素为 nums[i] ，也就是该位的元素是正确的。交换操作需要循环进行，因为一次交换没办法使得第 i 位上的元素是正确的。但是要交换的两个元素可能就是重复元素，那么循环就可能永远进行下去，终止循环的方法是加上 nums[i] != nums[nums[i] - 1 条件。
 
@@ -3656,31 +3736,28 @@ Output: [2,3]
 
 ```java
 public int[] findErrorNums(int[] nums) {
-    for(int i = 0; i < nums.length; i++){
-        while(nums[i] != i + 1 && nums[i] != nums[nums[i] - 1]) {
+    for (int i = 0; i < nums.length; i++) {
+        while (nums[i] != i + 1) {
+            if (nums[i] == nums[nums[i] - 1]) {
+                return new int[]{nums[nums[i] - 1], i + 1};
+            }
             swap(nums, i, nums[i] - 1);
-        }
-    }
-
-    for(int i = 0; i < nums.length; i++){
-        if(i + 1 != nums[i]) {
-            return new int[]{nums[i], i + 1};
         }
     }
 
     return null;
 }
 
-private void swap(int[] nums, int i, int j){
-    int tmp = nums[i];
-    nums[i] = nums[j];
-    nums[j] = tmp;
+private void swap(int[] nums, int i, int j) {
+    int tmp = nums[i]; nums[i] = nums[j]; nums[j] = tmp;
 }
 ```
 
-**找出数组中重复的数，数组值在 [0, n-1] 之间** 
+**找出数组中重复的数，数组值在 [1, n] 之间** 
 
 [Leetcode : 287. Find the Duplicate Number (Medium)](https://leetcode.com/problems/find-the-duplicate-number/description/)
+
+要求不能修改数组，也不能使用额外的空间。
 
 二分查找解法：
 
@@ -3704,18 +3781,17 @@ public int findDuplicate(int[] nums) {
 
 ```java
 public int findDuplicate(int[] nums) {
-      int slow = nums[0], fast = nums[nums[0]];
-      while (slow != fast) {
-          slow = nums[slow];
-          fast = nums[nums[fast]];
-      }
-
-      fast = 0;
-      while (slow != fast) {
-          slow = nums[slow];
-          fast = nums[fast];
-      }
-      return slow;
+    int slow = nums[0], fast = nums[nums[0]];
+    while (slow != fast) {
+        slow = nums[slow];
+        fast = nums[nums[fast]];
+    }
+    fast = 0;
+    while (slow != fast) {
+        slow = nums[slow];
+        fast = nums[fast];
+    }
+    return slow;
 }
 ```
 
@@ -3817,7 +3893,7 @@ class Tuple implements Comparable<Tuple> {
 
 ## 链表
 
-**判断两个链表的交点** 
+**找出两个链表的交点** 
 
 [Leetcode : 160. Intersection of Two Linked Lists (Easy)](https://leetcode.com/problems/intersection-of-two-linked-lists/description/)
 
@@ -3906,18 +3982,20 @@ public ListNode deleteDuplicates(ListNode head) {
 
 [Leetcode : 234. Palindrome Linked List (Easy)](https://leetcode.com/problems/palindrome-linked-list/description/)
 
+要求以 O(1) 的空间复杂度来求解。
+
 切成两半，把后半段反转，然后比较两半是否相等。
 
 ```java
 public boolean isPalindrome(ListNode head) {
-    if(head == null || head.next == null) return true;
+    if (head == null || head.next == null) return true;
     ListNode slow = head, fast = head.next;
-    while(fast != null && fast.next != null){
+    while (fast != null && fast.next != null) {
         slow = slow.next;
         fast = fast.next.next;
     }
 
-    if(fast != null){  // 偶数节点，让 slow 指向下一个节点
+    if (fast != null) {  // 偶数节点，让 slow 指向下一个节点
         slow = slow.next;
     }
 
@@ -3927,14 +4005,14 @@ public boolean isPalindrome(ListNode head) {
     return isEqual(l1, l2);
 }
 
-private void cut(ListNode head, ListNode cutNode){
-    while( head.next != cutNode ) head = head.next;
+private void cut(ListNode head, ListNode cutNode) {
+    while (head.next != cutNode) head = head.next;
     head.next = null;
 }
 
-private ListNode reverse(ListNode head){
+private ListNode reverse(ListNode head) {
     ListNode newHead = null;
-    while(head != null){
+    while (head != null) {
         ListNode nextNode = head.next;
         head.next = newHead;
         newHead = head;
@@ -3943,9 +4021,9 @@ private ListNode reverse(ListNode head){
     return newHead;
 }
 
-private boolean isEqual(ListNode l1, ListNode l2){
-    while(l1 != null && l2 != null){
-        if(l1.val != l2.val) return false;
+private boolean isEqual(ListNode l1, ListNode l2) {
+    while (l1 != null && l2 != null) {
+        if (l1.val != l2.val) return false;
         l1 = l1.next;
         l2 = l2.next;
     }
@@ -4092,7 +4170,7 @@ Return 3. The paths that sum to 8 are:
 3. -3 -> 11
 ```
 
-路径不一定以 root 开头并以 leaf 结尾，但是必须连续
+路径不一定以 root 开头，也不一定以 leaf 结尾，但是必须连续。
 
 ```java
 public int pathSum(TreeNode root, int sum) {
@@ -4199,19 +4277,13 @@ There are two left leaves in the binary tree, with values 9 and 15 respectively.
 
 ```java
 public int sumOfLeftLeaves(TreeNode root) {
-    if(root == null) {
-        return 0;
-    }
-    if(isLeaf(root.left)) {
-        return root.left.val +  sumOfLeftLeaves(root.right);
-    }
+    if(root == null) return 0;
+    if(isLeaf(root.left)) return root.left.val + sumOfLeftLeaves(root.right);
     return sumOfLeftLeaves(root.left) + sumOfLeftLeaves(root.right);
 }
 
 private boolean isLeaf(TreeNode node){
-    if(node == null) {
-        return false;
-    }
+    if(node == null) return false;
     return node.left == null && node.right == null;
 }
 ```
@@ -4268,7 +4340,7 @@ Given tree s:
   / \
  1   2
 Given tree t:
-   4 
+   4
   / \
  1   2
 Return true, because t has the same structure and node values with a subtree of s.
@@ -4543,11 +4615,11 @@ public int findBottomLeftValue(TreeNode root) {
 ### 前中后序遍历
 
 ```html
-   1
-  / \
-  2  3
- / \  \
-4  5  6
+    1
+   / \
+  2   3
+ / \   \
+4   5   6
 ```
 
 层次遍历顺序：[1 2 3 4 5 6]
@@ -4596,14 +4668,14 @@ void dfs(TreeNode root){
 ```java
 public List<Integer> preorderTraversal(TreeNode root) {
     List<Integer> ret = new ArrayList<>();
-    if (root == null) return ret;
     Stack<TreeNode> stack = new Stack<>();
     stack.push(root);
     while (!stack.isEmpty()) {
         TreeNode node = stack.pop();
+        if (node == null) continue;
         ret.add(node.val);
-        if (node.right != null) stack.push(node.right);
-        if (node.left != null) stack.push(node.left); // 先添加右子树再添加左子树，这样是为了让左子树在栈顶
+        stack.push(node.right); // 先右后左，保证左子树先遍历
+        stack.push(node.left);
     }
     return ret;
 }
@@ -4618,14 +4690,14 @@ public List<Integer> preorderTraversal(TreeNode root) {
 ```java
 public List<Integer> postorderTraversal(TreeNode root) {
     List<Integer> ret = new ArrayList<>();
-    if (root == null) return ret;
     Stack<TreeNode> stack = new Stack<>();
     stack.push(root);
     while (!stack.isEmpty()) {
         TreeNode node = stack.pop();
+        if (node == null) continue;
         ret.add(node.val);
-        if (node.left != null) stack.push(node.left);
-        if (node.right != null) stack.push(node.right);
+        stack.push(node.left);
+        stack.push(node.right);
     }
     Collections.reverse(ret);
     return ret;
@@ -4639,11 +4711,12 @@ public List<Integer> postorderTraversal(TreeNode root) {
 ```java
 public List<Integer> inorderTraversal(TreeNode root) {
     List<Integer> ret = new ArrayList<>();
+    if (root == null) return ret;
     Stack<TreeNode> stack = new Stack<>();
     TreeNode cur = root;
-    while(cur != null || !stack.isEmpty()) {
-        while(cur != null) { // 模拟递归栈的不断深入
-            stack.add(cur);
+    while (cur != null || !stack.isEmpty()) {
+        while (cur != null) {
+            stack.push(cur);
             cur = cur.left;
         }
         TreeNode node = stack.pop();
@@ -4663,7 +4736,7 @@ public List<Integer> inorderTraversal(TreeNode root) {
 [653. Two Sum IV - Input is a BST (Easy)](https://leetcode.com/problems/two-sum-iv-input-is-a-bst/description/)
 
 ```html
-Input: 
+Input:
     5
    / \
   3   6
@@ -4764,17 +4837,11 @@ public TreeNode convertBST(TreeNode root) {
 }
 
 private void traver(TreeNode root) {
-    if (root == null) {
-        return;
-    }
-    if (root.right != null) {
-        traver(root.right);
-    }
+    if (root == null) return;
+    if (root.right != null) traver(root.right);
     sum += root.val;
     root.val = sum;
-    if (root.left != null) {
-        traver(root.left);
-    }
+    if (root.left != null) traver(root.left);
 }
 ```
 
@@ -4799,31 +4866,31 @@ private List<Integer> list;
 
 public int[] findMode(TreeNode root) {
     list = new ArrayList<>();
-    inorder(root);
+    inOrder(root);
     int[] ret = new int[list.size()];
     int idx = 0;
-    for(int num : list){
+    for (int num : list) {
         ret[idx++] = num;
     }
     return ret;
 }
 
-private void inorder(TreeNode node){
-    if(node == null) return;
-    inorder(node.left);
-    if(preNode != null){
-        if(preNode.val == node.val) cnt++;
+private void inOrder(TreeNode node) {
+    if (node == null) return;
+    inOrder(node.left);
+    if (preNode != null) {
+        if (preNode.val == node.val) cnt++;
         else cnt = 1;
     }
-    if(cnt > maxCnt){
+    if (cnt > maxCnt) {
         maxCnt = cnt;
         list.clear();
         list.add(node.val);
-    } else if(cnt == maxCnt){
+    } else if (cnt == maxCnt) {
         list.add(node.val);
     }
     preNode = node;
-    inorder(node.right);
+    inOrder(node.right);
 }
 ```
 
@@ -4854,19 +4921,19 @@ private int cnt = 0;
 private int val;
 
 public int kthSmallest(TreeNode root, int k) {
-    inorder(root, k);
+    inOrder(root, k);
     return val;
 }
 
-private void inorder(TreeNode node, int k) {
-    if(node == null) return;
-    inorder(node.left, k);
+private void inOrder(TreeNode node, int k) {
+    if (node == null) return;
+    inOrder(node.left, k);
     cnt++;
-    if(cnt == k) {
+    if (cnt == k) {
         val = node.val;
         return;
     }
-    inorder(node.right, k);
+    inOrder(node.right, k);
 }
 ```
 
@@ -4883,33 +4950,24 @@ Trie，又称前缀树或字典树，用于判断字符串是否存在或者是�
 ```java
 class Trie {
 
-    private class Node{
-        Node[] childs = new Node[26];
-        boolean isLeaf;
-    }
-
     private Node root = new Node();
 
-    /** Initialize your data structure here. */
     public Trie() {
     }
 
-    /** Inserts a word into the trie. */
     public void insert(String word) {
-        int idx = word.charAt(0) - 'a';
         insert(word, root);
     }
 
     private void insert(String word, Node node){
         int idx = word.charAt(0) - 'a';
-        if(node.childs[idx] == null){
-            node.childs[idx] = new Node();
+        if(node.child[idx] == null){
+            node.child[idx] = new Node();
         }
-        if(word.length() == 1) node.childs[idx].isLeaf = true;
-        else insert(word.substring(1), node.childs[idx]);
+        if(word.length() == 1) node.child[idx].isLeaf = true;
+        else insert(word.substring(1), node.child[idx]);
     }
 
-    /** Returns if the word is in the trie. */
     public boolean search(String word) {
         return search(word, root);
     }
@@ -4917,12 +4975,11 @@ class Trie {
     private boolean search(String word, Node node){
         if(node == null) return false;
         int idx = word.charAt(0) - 'a';
-        if(node.childs[idx] == null) return false;
-        if(word.length() == 1) return node.childs[idx].isLeaf;
-        return search(word.substring(1), node.childs[idx]);
+        if(node.child[idx] == null) return false;
+        if(word.length() == 1) return node.child[idx].isLeaf;
+        return search(word.substring(1), node.child[idx]);
     }
 
-    /** Returns if there is any word in the trie that starts with the given prefix. */
     public boolean startsWith(String prefix) {
         return startWith(prefix, root);
     }
@@ -4931,7 +4988,12 @@ class Trie {
         if(node == null) return false;
         if(prefix.length() == 0) return true;
         int idx = prefix.charAt(0) - 'a';
-        return startWith(prefix.substring(1), node.childs[idx]);
+        return startWith(prefix.substring(1), node.child[idx]);
+    }
+
+    private class Node{
+        Node[] child = new Node[26];
+        boolean isLeaf;
     }
 }
 ```
@@ -4949,51 +5011,50 @@ Input: sum("ap"), Output: 5
 
 ```java
 class MapSum {
-    private class Trie {
-        int val;
-        Map<Character, Trie> childs;
-        boolean isWord;
 
-        Trie() {
-            childs = new HashMap<>();
-        }
+    private class Node {
+        Node[] child = new Node[26];
+        int value;
     }
 
-    private Trie root;
+    private Node root = new Node();
 
     public MapSum() {
-        root = new Trie();
+
     }
 
     public void insert(String key, int val) {
-        Trie cur = root;
-        for(char c : key.toCharArray()) {
-            if(!cur.childs.containsKey(c)) {
-                Trie next = new Trie();
-                cur.childs.put(c, next);
-            }
-            cur = cur.childs.get(c);
+        insert(key, root, val);
+    }
+
+    private void insert(String key, Node node, int val) {
+        int idx = key.charAt(0) - 'a';
+        if (node.child[idx] == null) {
+            node.child[idx] = new Node();
         }
-        cur.val = val;
-        cur.isWord = true;
+        if (key.length() == 1) {
+            node.child[idx].value = val;
+        } else {
+            insert(key.substring(1), node.child[idx], val);
+        }
     }
 
     public int sum(String prefix) {
-        Trie cur = root;
-        for(char c : prefix.toCharArray()) {
-            if(!cur.childs.containsKey(c)) return 0;
-            cur = cur.childs.get(c);
-        }
-        return dfs(cur);
+        return sum(prefix, root);
     }
 
-    private int dfs(Trie cur) {
-        int sum = 0;
-        if(cur.isWord) {
-            sum += cur.val;
+    private int sum(String prefix, Node node) {
+        if (node == null) {
+            return 0;
         }
-        for(Trie next : cur.childs.values()) {
-            sum += dfs(next);
+        int sum = node.value;
+        if (prefix.length() == 0) {
+            for (Node next : node.child) {
+                sum += sum(prefix, next);
+            }
+        } else {
+            int idx = prefix.charAt(0) - 'a';
+            sum = sum(prefix.substring(1), node.child[idx]);
         }
         return sum;
     }
@@ -5006,7 +5067,7 @@ class MapSum {
 
 **1. 基本原理** 
 
-0s 表示一串 0 ，1s 表示一串 1。
+0s 表示一串 0，1s 表示一串 1。
 
 ```
 x ^ 0s = x      x & 0s = 0      x | 0s = x
@@ -5014,9 +5075,9 @@ x ^ 1s = ~x     x & 1s = x      x | 1s = 1s
 x ^ x = 0       x & x = x       x | x = x
 ```
 
-① 利用 x ^ 1s = \~x 的特点，可以将位级表示翻转；利用 x ^ x = 0 的特点，可以将三个数中重复的两个数去除，只留下另一个数；
-② 利用 x & 0s = 0 和 x & 1s = x 的特点，可以实现掩码操作。一个数 num 与 mask ：00111100 进行位与操作，只保留 num 中与 mask 的 1 部分相对应的位；
-③ 利用 x | 0s = x 和 x | 1s = 1s 的特点，可以实现设值操作。一个数 num 与 mask：00111100 进行位或操作，将 num 中与 mask 的 1 部分相对应的位都设置为 1 。
+- 利用 x ^ 1s = \~x 的特点，可以将位级表示翻转；利用 x ^ x = 0 的特点，可以将三个数中重复的两个数去除，只留下另一个数；
+- 利用 x & 0s = 0 和 x & 1s = x 的特点，可以实现掩码操作。一个数 num 与 mask ：00111100 进行位与操作，只保留 num 中与 mask 的 1 部分相对应的位；
+- 利用 x | 0s = x 和 x | 1s = 1s 的特点，可以实现设值操作。一个数 num 与 mask：00111100 进行位或操作，将 num 中与 mask 的 1 部分相对应的位都设置为 1 。
 
 \>\> n 为算术右移，相当于除以 2<sup>n</sup>；
 \>\>\> n 为无符号右移，左边会补上 0。
@@ -5032,7 +5093,7 @@ n&(-n) 该运算得到 n 的位级表示中最低的那一位。-n 得到 n 的�
 
 要获取 111111111，将 0 取反即可，\~0。
 
-要得到只有第 i 位为 1 的 mask，将 1 向左移动 i 位即可，1&lt;&lt;i 。例如 1&lt;&lt;5 得到只有第 5 位为 1 的 mask ：00010000。
+要得到只有第 i 位为 1 的 mask，将 1 向左移动 i-1 位即可，1&lt;&lt;(i-1) 。例如 1&lt;&lt;4 得到只有第 5 位为 1 的 mask ：00010000。
 
 要得到 1 到 i 位为 1 的 mask，1&lt;&lt;(i+1)-1 即可，例如将 1&lt;&lt;(4+1)-1 = 00010000-1 = 00001111。
 
@@ -5100,7 +5161,7 @@ static String toBinaryString(int i);     // 转换为二进制表示的字符串
 
 [Leetcode : 461. Hamming Distance (Easy)](https://leetcode.com/problems/hamming-distance/)
 
-对两个数进行异或操作，不同的那一位结果为 1 ，统计有多少个 1 即可。
+对两个数进行异或操作，位级表示不同的那一位为 1，统计有多少个 1 即可。
 
 ```java
 public int hammingDistance(int x, int y) {
@@ -5129,11 +5190,42 @@ public int hammingDistance(int x, int y) {
 ```java
 public int reverseBits(int n) {
     int ret = 0;
-    for(int i = 0; i < 32; i++){
+    for (int i = 0; i < 32; i++) {
         ret <<= 1;
         ret |= (n & 1);
         n >>>= 1;
     }
+    return ret;
+}
+```
+
+如果该函数需要被调用很多次，可以将 int 拆成 4 个 byte，然后缓存 byte 对应的比特位翻转，最后再拼接起来。
+
+```java
+private static Map<Byte, Integer> cache = new HashMap<>();
+
+public int reverseBits(int n) {
+    int ret = 0;
+    for (int i = 0; i < 4; i++) {
+        byte b = (byte) (n & 0b11111111);
+        ret <<= 8;
+        ret |= reverseByte(b);
+        n >>= 8;
+    }
+    return ret;
+
+}
+
+private int reverseByte(byte b) {
+    if (cache.containsKey(b)) return cache.get(b);
+    int ret = 0;
+    byte t = b;
+    for (int i = 0; i < 8; i++) {
+        ret <<= 1;
+        ret |= t & 1;
+        t >>= 1;
+    }
+    cache.put(b, ret);
     return ret;
 }
 ```
@@ -5149,6 +5241,26 @@ a = a ^ b;
 ```
 
 令 c = a ^ b，那么 b ^ c = b ^ b ^ a = a，a ^ c = a ^ a ^ b = b。
+
+**判断一个数是不是 2 的 n 次方** 
+
+[Leetcode : 231. Power of Two (Easy)](https://leetcode.com/problems/power-of-two/description/)
+
+二进制表示只有一个 1 存在。
+
+```java
+public boolean isPowerOfTwo(int n) {
+    return n > 0 && Integer.bitCount(n) == 1;
+}
+```
+
+利用 1000 & 0111 == 0 这种性质，得到以下解法：
+
+```java
+public boolean isPowerOfTwo(int n) {
+    return n > 0 && (n & (n - 1)) == 0;
+}
+```
 
 **判断一个数是不是 4 的 n 次方** 
 
@@ -5167,23 +5279,15 @@ public boolean isPowerOfFour(int num) {
 }
 ```
 
-**判断一个数是不是 2 的 n 次方** 
-
-[Leetcode : 231. Power of Two (Easy)](https://leetcode.com/problems/power-of-two/description/)
-
-同样可以用 Power of Four 的方法，但是 2 的 n 次方更特殊，它的二进制表示只有一个 1 存在。
-
 ```java
-public boolean isPowerOfTwo(int n) {
-    return n > 0 && Integer.bitCount(n) == 1;
+public boolean isPowerOfFour(int num) {
+    return Integer.toString(num, 4).matches("10*");
 }
 ```
 
-利用 1000 & 0111 == 0 这种性质，得到以下解法：
-
 ```java
-public boolean isPowerOfTwo(int n) {
-    return n > 0 && (n & (n - 1)) == 0;
+public boolean isPowerOfFour(int num) {
+    return num > 0 && (num & (num - 1)) == 0 && (num & 0b01010101010101010101010101010101) != 0;
 }
 ```
 
@@ -5245,7 +5349,13 @@ public boolean hasAlternatingBits(int n) {
 
 [Leetcode : 476. Number Complement (Easy)](https://leetcode.com/problems/number-complement/description/)
 
-不考虑二进制表示中的首 0 部分
+```html
+Input: 5
+Output: 2
+Explanation: The binary representation of 5 is 101 (no leading zero bits), and its complement is 010. So you need to output 2.
+```
+
+不考虑二进制表示中的首 0 部分。
 
 对于 00000101，要求补码可以将它与 00000111 进行异或操作。那么问题就转换为求掩码 00000111。
 
@@ -5306,6 +5416,12 @@ public int getSum(int a, int b) {
 
 [Leetcode : 318. Maximum Product of Word Lengths (Medium)](https://leetcode.com/problems/maximum-product-of-word-lengths/description/)
 
+```html
+Given ["abcw", "baz", "foo", "bar", "xtfn", "abcdef"]
+Return 16
+The two words can be "abcw", "xtfn".
+```
+
 题目描述：字符串数组的字符串只含有小写字符。求解字符串数组中两个字符串长度的最大乘积，要求这两个字符串不能含有相同字符。
 
 解题思路：本题主要问题是判断两个字符串是否含相同字符，由于字符串只含有小写字符，总共 26 位，因此可以用一个 32 位的整数来存储每个字符是否出现过。
@@ -5327,6 +5443,22 @@ public int maxProduct(String[] words) {
                 ret = Math.max(ret, words[i].length() * words[j].length());
             }
         }
+    }
+    return ret;
+}
+```
+
+**统计从 0 \~ n 每个数的二进制表示中 1 的个数** 
+
+[Leetcode : 338. Counting Bits (Medium)](https://leetcode.com/problems/counting-bits/description/)
+
+对于数字 6(110)，它可以看成是数字 (10) 前面加上一个 1 ，因此 dp[i] = dp[i&(i-1)] + 1;
+
+```java
+public int[] countBits(int num) {
+    int[] ret = new int[num + 1];
+    for(int i = 1; i <= num; i++){
+        ret[i] = ret[i&(i-1)] + 1;
     }
     return ret;
 }
