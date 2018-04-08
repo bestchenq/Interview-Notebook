@@ -36,8 +36,6 @@
     * [哈希表](#哈希表)
     * [字符串](#字符串)
     * [数组与矩阵](#数组与矩阵)
-        * [1-n 分布](#1-n-分布)
-        * [有序矩阵](#有序矩阵)
     * [链表](#链表)
     * [树](#树)
         * [递归](#递归)
@@ -730,6 +728,51 @@ public List<Integer> topKFrequent(int[] nums, int k) {
 }
 ```
 
+**按照字符出现次数对字符串排序** 
+
+[Leetcode : 451. Sort Characters By Frequency (Medium)](https://leetcode.com/problems/sort-characters-by-frequency/description/)
+
+```html
+Input:
+"tree"
+
+Output:
+"eert"
+
+Explanation:
+'e' appears twice while 'r' and 't' both appear once.
+So 'e' must appear before both 'r' and 't'. Therefore "eetr" is also a valid answer.
+```
+
+```java
+public String frequencySort(String s) {
+    Map<Character, Integer> map = new HashMap<>();
+    for (char c : s.toCharArray()) {
+        map.put(c, map.getOrDefault(c, 0) + 1);
+    }
+    List<Character>[] frequencyBucket = new List[s.length() + 1];
+    for(char c : map.keySet()){
+        int f = map.get(c);
+        if (frequencyBucket[f] == null) {
+            frequencyBucket[f] = new ArrayList<>();
+        }
+        frequencyBucket[f].add(c);
+    }
+    StringBuilder str = new StringBuilder();
+    for (int i = frequencyBucket.length - 1; i >= 0; i--) {
+        if (frequencyBucket[i] == null) {
+            continue;
+        }
+        for (char c : frequencyBucket[i]) {
+            for (int j = 0; j < i; j++) {
+                str.append(c);
+            }
+        }
+    }
+    return str.toString();
+}
+```
+
 ## 搜索
 
 深度优先搜索和广度优先搜索广泛运用于树和图中，但是它们的应用远远不止如此。
@@ -1416,6 +1459,46 @@ private void doCombination(int[] candidates, int target, int start, List<Integer
             visited[i] = false;
             list.remove(list.size() - 1);
         }
+    }
+}
+```
+
+**1-9 数字的组合求和** 
+
+[Leetcode : 216. Combination Sum III (Medium)](https://leetcode.com/problems/combination-sum-iii/description/)
+
+```html
+Input: k = 3, n = 9
+
+Output:
+
+[[1,2,6], [1,3,5], [2,3,4]]
+```
+
+题目描述：从 1-9 数字中选出 k 个数，使得它们的和为 n。
+
+```java
+public List<List<Integer>> combinationSum3(int k, int n) {
+    List<List<Integer>> ret = new ArrayList<>();
+    List<Integer> path = new ArrayList<>();
+    for (int i = 1; i <= 9; i++) {
+        path.add(i);
+        backtracking(k - 1, n - i, path, i, ret);
+        path.remove(0);
+    }
+    return ret;
+}
+
+private void backtracking(int k, int n, List<Integer> path, int start, List<List<Integer>> ret) {
+    if (k == 0 && n == 0) {
+        ret.add(new ArrayList<>(path));
+        return;
+    }
+    if (k == 0 || n == 0) return;
+    for (int i = start + 1; i <= 9; i++) { // 只能访问下一个元素，防止遍历的结果重复
+        path.add(i);
+        backtracking(k - 1, n - i, path, i, ret);
+        path.remove(path.size() - 1);
     }
 }
 ```
@@ -2684,30 +2767,63 @@ public int minPathSum(int[][] grid) {
 
 题目描述：交易之后需要有一天的冷却时间。
 
-<div align="center"> <img src="../pics//ac9b31ec-cef1-4880-a875-fc4571ca10e1.png"/> </div><br>
-
-```html
-s0[i] = max(s0[i - 1], s2[i - 1]); // Stay at s0, or rest from s2
-s1[i] = max(s1[i - 1], s0[i - 1] - prices[i]); // Stay at s1, or buy from s0
-s2[i] = s1[i - 1] + prices[i]; // Only one way from s1
-```
+<div align="center"> <img src="../pics//f4cdda3e-324c-49b5-8c14-08a3db634b29.png"/> </div><br>
 
 ```java
 public int maxProfit(int[] prices) {
     if (prices == null || prices.length == 0) return 0;
-    int n = prices.length;
-    int[] s0 = new int[n];
-    int[] s1 = new int[n];
-    int[] s2 = new int[n];
-    s0[0] = 0;
-    s1[0] = -prices[0];
-    s2[0] = Integer.MIN_VALUE;
-    for (int i = 1; i < n; i++) {
-        s0[i] = Math.max(s0[i - 1], s2[i - 1]);
-        s1[i] = Math.max(s1[i - 1], s0[i - 1] - prices[i]);
-        s2[i] = Math.max(s2[i - 1], s1[i - 1] + prices[i]);
+    int N = prices.length;
+    int[] buy = new int[N];
+    int[] s1 = new int[N];
+    int[] sell = new int[N];
+    int[] s2 = new int[N];
+    s1[0] = buy[0] = -prices[0];
+    sell[0] = s2[0] = 0;
+    for (int i = 1; i < N; i++) {
+        buy[i] = s2[i - 1] - prices[i];
+        s1[i] = Math.max(buy[i - 1], s1[i - 1]);
+        sell[i] = Math.max(buy[i - 1], s1[i - 1]) + prices[i];
+        s2[i] = Math.max(s2[i - 1], sell[i - 1]);
     }
-    return Math.max(s0[n - 1], s2[n - 1]);
+    return Math.max(sell[N - 1], s2[N - 1]);
+}
+```
+
+**需要交易费用的股票交易** 
+
+[Leetcode : 714. Best Time to Buy and Sell Stock with Transaction Fee (Medium)](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/description/)
+
+```html
+Input: prices = [1, 3, 2, 8, 4, 9], fee = 2
+Output: 8
+Explanation: The maximum profit can be achieved by:
+Buying at prices[0] = 1
+Selling at prices[3] = 8
+Buying at prices[4] = 4
+Selling at prices[5] = 9
+The total profit is ((8 - 1) - 2) + ((9 - 4) - 2) = 8.
+```
+
+题目描述：每交易一次，都要支付一定的费用。
+
+<div align="center"> <img src="../pics//6f4abf41-3728-4a6b-9b94-85eed7ca8163.png"/> </div><br>
+
+```java
+public int maxProfit(int[] prices, int fee) {
+    int N = prices.length;
+    int[] buy = new int[N];
+    int[] s1 = new int[N];
+    int[] sell = new int[N];
+    int[] s2 = new int[N];
+    s1[0] = buy[0] = -prices[0];
+    sell[0] = s2[0] = 0;
+    for (int i = 1; i < N; i++) {
+        buy[i] = Math.max(sell[i - 1], s2[i - 1]) - prices[i];
+        s1[i] = Math.max(buy[i - 1], s1[i - 1]);
+        sell[i] = Math.max(buy[i - 1], s1[i - 1]) - fee + prices[i];
+        s2[i] = Math.max(s2[i - 1], sell[i - 1]);
+    }
+    return Math.max(sell[N - 1], s2[N - 1]);
 }
 ```
 
@@ -3478,6 +3594,18 @@ public int[] twoSum(int[] nums, int target) {
 }
 ```
 
+**判断数组是否含有相同元素** 
+
+[Leetcode : 217. Contains Duplicate (Easy)](https://leetcode.com/problems/contains-duplicate/description/)
+
+```java
+public boolean containsDuplicate(int[] nums) {
+    Set<Integer> set = new HashSet<>();
+    for (int num : nums) set.add(num);
+    return set.size() < nums.length;
+}
+```
+
 **最长和谐序列** 
 
 [Leetcode : 594. Longest Harmonious Subsequence (Easy)](https://leetcode.com/problems/longest-harmonious-subsequence/description/)
@@ -3503,6 +3631,45 @@ public int findLHS(int[] nums) {
         }
     }
     return result;
+}
+```
+
+**最长连续序列** 
+
+[Leetcode : 128. Longest Consecutive Sequence (Medium)](https://leetcode.com/problems/longest-consecutive-sequence/description/)
+
+```html
+Given [100, 4, 200, 1, 3, 2],
+The longest consecutive elements sequence is [1, 2, 3, 4]. Return its length: 4.
+```
+
+```java
+public int longestConsecutive(int[] nums) {
+    Map<Integer, Integer> numCnts = new HashMap<>();
+    for (int num : nums) {
+        numCnts.put(num, 1);
+    }
+    for (int num : nums) {
+        count(numCnts, num);
+    }
+    int max = 0;
+    for (int num : nums) {
+        max = Math.max(max, numCnts.get(num));
+    }
+    return max;
+}
+
+private int count(Map<Integer, Integer> numCnts, int num) {
+    if (!numCnts.containsKey(num)) {
+        return 0;
+    }
+    int cnt = numCnts.get(num);
+    if (cnt > 1) {
+        return cnt;
+    }
+    cnt = count(numCnts, num + 1) + 1;
+    numCnts.put(num, cnt);
+    return cnt;
 }
 ```
 
@@ -3707,7 +3874,223 @@ public void moveZeroes(int[] nums) {
 }
 ```
 
-### 1-n 分布
+**调整矩阵** 
+
+[Leetcode : 566. Reshape the Matrix (Easy)](https://leetcode.com/problems/reshape-the-matrix/description/)
+
+```html
+Input: 
+nums = 
+[[1,2],
+ [3,4]]
+r = 1, c = 4
+Output: 
+[[1,2,3,4]]
+Explanation:
+The row-traversing of nums is [1,2,3,4]. The new reshaped matrix is a 1 * 4 matrix, fill it row by row by using the previous list.
+```
+
+```java
+public int[][] matrixReshape(int[][] nums, int r, int c) {
+    int m = nums.length, n = nums[0].length;
+    if (m * n != r * c) return nums;
+    int[][] ret = new int[r][c];
+    int index = 0;
+    for (int i = 0; i < r; i++) {
+        for (int j = 0; j < c; j++) {
+            ret[i][j] = nums[index / n][index % n];
+            index++;
+        }
+    }
+    return ret;
+}
+```
+
+**找出数组中最长的连续 1** 
+
+[Leetcode : 485. Max Consecutive Ones (Easy)](https://leetcode.com/problems/max-consecutive-ones/description/)
+
+```java
+public int findMaxConsecutiveOnes(int[] nums) {
+    int max = 0;
+    int cur = 0;
+    for (int num : nums) {
+        if (num == 0) cur = 0;
+        else {
+            cur++;
+            max = Math.max(max, cur);
+        }
+    }
+    return max;
+}
+```
+
+**数组相邻差值的个数** 
+
+[Leetcode : 667. Beautiful Arrangement II (Medium)](https://leetcode.com/problems/beautiful-arrangement-ii/description/)
+
+```html
+Input: n = 3, k = 2
+Output: [1, 3, 2]
+Explanation: The [1, 3, 2] has three different positive integers ranging from 1 to 3, and the [2, 1] has exactly 2 distinct integers: 1 and 2.
+```
+
+题目描述：数组元素为 1\~n 的整数，要求构建数组，使得相邻元素的差值不相同的个数为 k。
+
+让前 k+1 个元素构建出 k 个不相同的差值，序列为：1 k+1 2 k 3 k-1 ... k/2 k/2+1.
+
+```java
+public int[] constructArray(int n, int k) {
+    int[] ret = new int[n];
+    ret[0] = 1;
+    for (int i = 1, interval = k; i <= k; i++, interval--) {
+        ret[i] = i % 2 == 1 ? ret[i - 1] + interval : ret[i - 1] - interval;
+    }
+    for (int i = k + 1; i < n; i++) {
+        ret[i] = i + 1;
+    }
+    return ret;
+}
+```
+
+**数组的度** 
+
+[Leetcode : 697. Degree of an Array (Easy)](https://leetcode.com/problems/degree-of-an-array/description/)
+
+```html
+Input: [1,2,2,3,1,4,2]
+Output: 6
+```
+
+题目描述：数组的度定义为元素出现的最高频率，例如上面的数组度为 3。要求找到一个最小的子数组，这个子数组的度和原数组一样。
+
+```java
+public int findShortestSubArray(int[] nums) {
+    Map<Integer, Integer> numsCnt = new HashMap<>();
+    Map<Integer, Integer> numsLastIndex = new HashMap<>();
+    Map<Integer, Integer> numsFirstIndex = new HashMap<>();
+    for (int i = 0; i < nums.length; i++) {
+        int num = nums[i];
+        numsCnt.put(num, numsCnt.getOrDefault(num, 0) + 1);
+        numsLastIndex.put(num, i);
+        if (!numsFirstIndex.containsKey(num)) {
+            numsFirstIndex.put(num, i);
+        }
+    }
+    int maxCnt = 0;
+    for (int num : nums) {
+        maxCnt = Math.max(maxCnt, numsCnt.get(num));
+    }
+    int ret = nums.length;
+    for (int i = 0; i < nums.length; i++) {
+        int num = nums[i];
+        int cnt = numsCnt.get(num);
+        if (cnt != maxCnt) continue;
+        ret = Math.min(ret, numsLastIndex.get(num) - numsFirstIndex.get(num) + 1);
+    }
+    return ret;
+}
+```
+
+**对角元素相等的矩阵** 
+
+[Leetcode : 766. Toeplitz Matrix (Easy)](https://leetcode.com/problems/toeplitz-matrix/description/)
+
+```html
+1234
+5123
+9512
+
+In the above grid, the diagonals are "[9]", "[5, 5]", "[1, 1, 1]", "[2, 2, 2]", "[3, 3]", "[4]", and in each diagonal all elements are the same, so the answer is True.
+```
+
+```java
+public boolean isToeplitzMatrix(int[][] matrix) {
+    for (int i = 0; i < matrix[0].length; i++) {
+        if (!check(matrix, matrix[0][i], 0, i)) {
+            return false;
+        }
+    }
+    for (int i = 0; i < matrix.length; i++) {
+        if (!check(matrix, matrix[i][0], i, 0)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+private boolean check(int[][] matrix, int expectValue, int row, int col) {
+    if (row >= matrix.length || col >= matrix[0].length) {
+        return true;
+    }
+    if (matrix[row][col] != expectValue) {
+        return false;
+    }
+    return check(matrix, expectValue, row + 1, col + 1);
+}
+```
+
+**嵌套数组** 
+
+[Leetcode : 565. Array Nesting (Medium)](https://leetcode.com/problems/array-nesting/description/)
+
+```html
+Input: A = [5,4,0,3,1,6,2]
+Output: 4
+Explanation:
+A[0] = 5, A[1] = 4, A[2] = 0, A[3] = 3, A[4] = 1, A[5] = 6, A[6] = 2.
+
+One of the longest S[K]:
+S[0] = {A[0], A[5], A[6], A[2]} = {5, 6, 2, 0}
+```
+
+题目描述：S[i] 表示一个集合，集合的第一个元素是 A[i]，第二个元素是 A[A[i]]，如此嵌套下去。求最大的 S[i]。
+
+```java
+public int arrayNesting(int[] nums) {
+    int max = 0;
+    for (int i = 0; i < nums.length; i++) {
+        int cnt = 0;
+        for (int j = i; nums[j] != -1; ) {
+            cnt++;
+            int t = nums[j];
+            nums[j] = -1; // 标记该位置已经被访问
+            j = t;
+
+        }
+        max = Math.max(max, cnt);
+    }
+    return max;
+}
+```
+
+**分隔数组** 
+
+[Leetcode : 769. Max Chunks To Make Sorted (Medium)](https://leetcode.com/problems/max-chunks-to-make-sorted/description/)
+
+```html
+Input: arr = [1,0,2,3,4]
+Output: 4
+Explanation:
+We can split into two chunks, such as [1, 0], [2, 3, 4].
+However, splitting into [1, 0], [2], [3], [4] is the highest number of chunks possible.
+```
+
+题目描述：分隔数组，使得对每部分排序后数组就为有序。
+
+```java
+public int maxChunksToSorted(int[] arr) {
+    if (arr == null) return 0;
+    int ret = 0;
+    int right = arr[0];
+    for (int i = 0; i < arr.length; i++) {
+        right = Math.max(right, arr[i]);
+        if (right == i) ret++;
+    }
+    return ret;
+}
+```
+
 
 **一个数组元素在 [1, n] 之间，其中一个数被替换为另一个数，找出丢失的数和重复的数** 
 
@@ -3795,9 +4178,9 @@ public int findDuplicate(int[] nums) {
 }
 ```
 
-### 有序矩阵
+**有序矩阵查找** 
 
-有序矩阵指的是行和列分别有序的矩阵。一般可以利用有序性使用二分查找方法。
+[Leetocde : 240. Search a 2D Matrix II (Medium)](https://leetcode.com/problems/search-a-2d-matrix-ii/description/)
 
 ```html
 [
@@ -3806,10 +4189,6 @@ public int findDuplicate(int[] nums) {
    [12, 13, 15]
 ]
 ```
-
-**有序矩阵查找** 
-
-[Leetocde : 240. Search a 2D Matrix II (Medium)](https://leetcode.com/problems/search-a-2d-matrix-ii/description/)
 
 ```java
 public boolean searchMatrix(int[][] matrix, int target) {
@@ -3970,11 +4349,195 @@ public ListNode mergeTwoLists(ListNode l1, ListNode l2) {
 
 [Leetcode : 83. Remove Duplicates from Sorted List (Easy)](https://leetcode.com/problems/remove-duplicates-from-sorted-list/description/)
 
+```html
+Given 1->1->2, return 1->2.
+Given 1->1->2->3->3, return 1->2->3.
+```
+
 ```java
 public ListNode deleteDuplicates(ListNode head) {
     if(head == null || head.next == null) return head;
     head.next = deleteDuplicates(head.next);
     return head.next != null && head.val == head.next.val ? head.next : head;
+}
+```
+
+**删除链表的倒数第 n 个节点** 
+
+[Leetcode : 19. Remove Nth Node From End of List (Medium)](https://leetcode.com/problems/remove-nth-node-from-end-of-list/description/)
+
+```html
+Given linked list: 1->2->3->4->5, and n = 2.
+After removing the second node from the end, the linked list becomes 1->2->3->5.
+```
+
+```java
+public ListNode removeNthFromEnd(ListNode head, int n) {
+    ListNode newHead = new ListNode(-1);
+    newHead.next = head;
+    ListNode fast = newHead;
+    while (n-- > 0) {
+        fast = fast.next;
+    }
+    ListNode slow = newHead;
+    while (fast.next != null) {
+        fast = fast.next;
+        slow = slow.next;
+    }
+    slow.next = slow.next.next;
+    return newHead.next;
+}
+```
+
+**交换链表中的相邻结点** 
+
+[Leetcode : 24. Swap Nodes in Pairs (Medium)](https://leetcode.com/problems/swap-nodes-in-pairs/description/)
+
+```html
+Given 1->2->3->4, you should return the list as 2->1->4->3.
+```
+
+题目要求：不能修改结点的 val 值；O(1) 空间复杂度。
+
+```java
+public ListNode swapPairs(ListNode head) {
+    ListNode newHead = new ListNode(-1);
+    newHead.next = head;
+    ListNode cur = head, pre = newHead;
+    while (cur != null && cur.next != null) {
+        ListNode next = cur.next;
+        pre.next = next;
+        cur.next = next.next;
+        next.next = cur;
+        pre = cur;
+        cur = cur.next;
+    }
+    return newHead.next;
+}
+```
+
+**根据有序链表构造平衡的 BST** 
+
+[Leetcode : 109. Convert Sorted List to Binary Search Tree (Medium)](https://leetcode.com/problems/convert-sorted-list-to-binary-search-tree/description/)
+
+```html
+Given the sorted linked list: [-10,-3,0,5,9],
+
+One possible answer is: [0,-3,9,-10,null,5], which represents the following height balanced BST:
+
+      0
+     / \
+   -3   9
+   /   /
+ -10  5
+```
+
+```java
+public TreeNode sortedListToBST(ListNode head) {
+    if (head == null) return null;
+    int size = size(head);
+    if (size == 1) return new TreeNode(head.val);
+    ListNode pre = head, mid = pre.next;
+    int step = 2;
+    while (step <= size / 2) {
+        pre = mid;
+        mid = mid.next;
+        step++;
+    }
+    pre.next = null;
+    TreeNode t = new TreeNode(mid.val);
+    t.left = sortedListToBST(head);
+    t.right = sortedListToBST(mid.next);
+    return t;
+}
+
+private int size(ListNode node) {
+    int size = 0;
+    while (node != null) {
+        size++;
+        node = node.next;
+    }
+    return size;
+}
+```
+
+
+**链表求和** 
+
+[Leetcode : 445. Add Two Numbers II (Medium)](https://leetcode.com/problems/add-two-numbers-ii/description/)
+
+```html
+Input: (7 -> 2 -> 4 -> 3) + (5 -> 6 -> 4)
+Output: 7 -> 8 -> 0 -> 7
+```
+
+题目要求：不能修改原始链表。
+
+```java
+public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+    Stack<Integer> l1Stack = buildStack(l1);
+    Stack<Integer> l2Stack = buildStack(l2);
+    ListNode head = new ListNode(-1);
+    int carry = 0;
+    while (!l1Stack.isEmpty() || !l2Stack.isEmpty() || carry != 0) {
+        int x = l1Stack.isEmpty() ? 0 : l1Stack.pop();
+        int y = l2Stack.isEmpty() ? 0 : l2Stack.pop();
+        int sum = x + y + carry;
+        ListNode node = new ListNode(sum % 10);
+        node.next = head.next;
+        head.next = node;
+        carry = sum / 10;
+    }
+    return head.next;
+}
+
+private Stack<Integer> buildStack(ListNode l) {
+    Stack<Integer> stack = new Stack<>();
+    while (l != null) {
+        stack.push(l.val);
+        l = l.next;
+    }
+    return stack;
+}
+```
+
+**分隔链表** 
+
+[Leetcode : 725. Split Linked List in Parts(Medium)](https://leetcode.com/problems/split-linked-list-in-parts/description/)
+
+```html
+Input:
+root = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], k = 3
+Output: [[1, 2, 3, 4], [5, 6, 7], [8, 9, 10]]
+Explanation:
+The input has been split into consecutive parts with size difference at most 1, and earlier parts are a larger size than the later parts.
+```
+
+题目描述：把链表分隔成 k 部分，每部分的长度都应该尽可能相同，排在前面的长度应该大于等于后面的。
+
+```java
+public ListNode[] splitListToParts(ListNode root, int k) {
+    int N = 0;
+    ListNode cur = root;
+    while (cur != null) {
+        N++;
+        cur = cur.next;
+    }
+    int mod = N % k;
+    int size = N / k;
+    ListNode[] ret = new ListNode[k];
+    cur = root;
+    for (int i = 0; cur != null && i < k; i++) {
+        ret[i] = cur;
+        int curSize = size + (mod-- > 0 ? 1 : 0);
+        for (int j = 0; j < curSize - 1; j++) {
+            cur = cur.next;
+        }
+        ListNode next = cur.next;
+        cur.next = null;
+        cur = next;
+    }
+    return ret;
 }
 ```
 
@@ -5063,6 +5626,66 @@ class MapSum {
 
 ## 图
 
+**冗余连接** 
+
+[Leetcode : 684. Redundant Connection (Medium)](https://leetcode.com/problems/redundant-connection/description/)
+
+```html
+Input: [[1,2], [1,3], [2,3]]
+Output: [2,3]
+Explanation: The given undirected graph will be like this:
+  1
+ / \
+2 - 3
+```
+
+题目描述：有一系列的边连成的图，找出一条边，移除它之后该图能够成为一棵树。
+
+使用 Union-Find。
+
+```java
+public int[] findRedundantConnection(int[][] edges) {
+    int N = edges.length;
+    UF uf = new UF(N);
+    for (int[] e : edges) {
+        int u = e[0], v = e[1];
+        if (uf.find(u) == uf.find(v)) {
+            return e;
+        }
+        uf.union(u, v);
+    }
+    return new int[]{-1, -1};
+}
+
+private class UF {
+    int[] id;
+
+    UF(int N) {
+        id = new int[N + 1];
+        for (int i = 0; i < id.length; i++) {
+            id[i] = i;
+        }
+    }
+
+    void union(int u, int v) {
+        int uID = find(u);
+        int vID = find(v);
+        if (uID == vID) {
+            return;
+        }
+        for (int i = 0; i < id.length; i++) {
+            if (id[i] == uID) {
+                id[i] = vID;
+            }
+        }
+    }
+
+    int find(int p) {
+        return id[p];
+    }
+}
+```
+
 ## 位运算
 
 **1. 基本原理** 
@@ -5180,6 +5803,28 @@ public int hammingDistance(int x, int y) {
 ```java
 public int hammingDistance(int x, int y) {
     return Integer.bitCount(x ^ y);
+}
+```
+
+**找出数组中缺失的那个数** 
+
+[Leetcode : 268. Missing Number (Easy)](https://leetcode.com/problems/missing-number/description/)
+
+```html
+Input: [3,0,1]
+Output: 2
+```
+
+题目描述：数组元素在 0-n 之间，但是有一个数是缺失的，要求找到这个缺失的数。
+                                        `
+
+```java
+public int missingNumber(int[] nums) {
+    int ret = 0;
+    for (int i = 0; i <= nums.length; i++) {
+        ret = i == nums.length ? ret ^ i : ret ^ i ^ nums[i];
+    }
+    return ret;
 }
 ```
 
