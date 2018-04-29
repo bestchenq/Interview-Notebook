@@ -7,6 +7,7 @@
         * [快速选择](#快速选择)
         * [堆排序](#堆排序)
         * [桶排序](#桶排序)
+        * [荷兰国旗问题](#荷兰国旗问题)
     * [搜索](#搜索)
         * [BFS](#bfs)
         * [DFS](#dfs)
@@ -118,7 +119,7 @@ public int binarySearch(int[] nums, int key) {
 - h 的赋值表达式为 h = m
 - 最后返回 l 而不是 -1
 
-在 nums[m] >= key 的情况下，可以推导出最左 key 位于 [0, m] 区间中，这是一个闭区间。h 的赋值表达式为 h = m，因为 m 位置也可能是解。
+在 nums[m] >= key 的情况下，可以推导出最左 key 位于 [l, m] 区间中，这是一个闭区间。h 的赋值表达式为 h = m，因为 m 位置也可能是解。
 
 在 h 的赋值表达式为 h = mid 的情况下，如果循环条件为 l <= h，那么会出现循环无法退出的情况，因此循环条件只能是 l < h。
 
@@ -218,7 +219,7 @@ Output: 2
 
 令 key 为 Single Element 在数组中的位置。如果 m 为偶数，并且 m + 1 < key，那么 nums[m] == nums[m + 1]；m + 1 >= key，那么 nums[m] != nums[m + 1]。
 
-从上面的规律可以知道，如果 nums[m] == nums[m + 1]，那么 key 所在的数组位置为 [m + 2, n - 1]，此时令 l = m + 2；如果 nums[m] != nums[m + 1]，那么 key 所在的数组位置为 [0, m]，此时令 h = m。
+从上面的规律可以知道，如果 nums[m] == nums[m + 1]，那么 key 所在的数组位置为 [m + 2, h]，此时令 l = m + 2；如果 nums[m] != nums[m + 1]，那么 key 所在的数组位置为 [l, m]，此时令 h = m。
 
 因为 h 的赋值表达式为 h = m，那么循环条件也就只能使用 l < h 这种形式。
 
@@ -244,7 +245,7 @@ public int singleNonDuplicate(int[] nums) {
 
 题目描述：给定一个元素 n 代表有 [1, 2, ..., n] 版本，可以调用 isBadVersion(int x) 知道某个版本是否错误，要求找到第一个错误的版本。
 
-如果第 m 个版本出错，则表示第一个错误的版本在 [1, m] 之间，令 h = m；否则第一个错误的版本在 [m + 1, n] 之间，令 l = m + 1。
+如果第 m 个版本出错，则表示第一个错误的版本在 [l, m] 之间，令 h = m；否则第一个错误的版本在 [m + 1, h] 之间，令 l = m + 1。
 
 因为 h 的赋值表达式为 h = m，因此循环条件为 l < h。
 
@@ -349,7 +350,8 @@ public int findContentChildren(int[] g, int[] s) {
     Arrays.sort(s);
     int gIndex = 0, sIndex = 0;
     while (gIndex < g.length && sIndex < s.length) {
-        if (g[gIndex] <= s[sIndex]) gIndex++;
+        if (g[gIndex] <= s[sIndex])
+            gIndex++;
         sIndex++;
     }
     return gIndex;
@@ -367,11 +369,10 @@ public int findContentChildren(int[] g, int[] s) {
 ```java
 public int maxProfit(int[] prices) {
     int profit = 0;
-    for (int i = 1; i < prices.length; i++) {
-        if (prices[i] > prices[i - 1]) {
+    for (int i = 1; i < prices.length; i++)
+        if (prices[i] > prices[i - 1])
             profit += (prices[i] - prices[i - 1]);
-        }
-    }
+
     return profit;
 }
 ```
@@ -389,11 +390,13 @@ Output: True
 
 ```java
 public boolean canPlaceFlowers(int[] flowerbed, int n) {
+    int len = flowerbed.length;
     int cnt = 0;
-    for (int i = 0; i < flowerbed.length; i++) {
-        if (flowerbed[i] == 1) continue;
+    for (int i = 0; i < len; i++) {
+        if (flowerbed[i] == 1)
+            continue;
         int pre = i == 0 ? 0 : flowerbed[i - 1];
-        int next = i == flowerbed.length - 1 ? 0 : flowerbed[i + 1];
+        int next = i == len - 1 ? 0 : flowerbed[i + 1];
         if (pre == 0 && next == 0) {
             cnt++;
             flowerbed[i] = 1;
@@ -415,17 +418,19 @@ Explanation: You could modify the first 4 to 1 to get a non-decreasing array.
 
 题目描述：判断一个数组能不能只修改一个数就成为非递减数组。
 
-在出现 nums[i] < nums[i - 1] 时，需要考虑的是应该修改数组的哪个数，使得本次修改能使 i 之前的数组成为非递减数组，并且  **不影响后续的操作** 。优先考虑令 nums[i - 1] = nums[i]，因为如果修改 nums[i] = nums[i - 1] 的话，那么 nums[i] 这个数会变大，就有可能比 nums[i + 1] 大，从而影响了后续操作。还有一个比较特别的情况就是 nums[i] < nums[i - 2]，只修改 nums[i - 1] = nums[i] 不能令数组成为非递减，只能通过修改 nums[i] = nums[i - 1] 才行。
+在出现 nums[i] < nums[i - 1] 时，需要考虑的是应该修改数组的哪个数，使得本次修改能使 i 之前的数组成为非递减数组，并且  **不影响后续的操作** 。优先考虑令 nums[i - 1] = nums[i]，因为如果修改 nums[i] = nums[i - 1] 的话，那么 nums[i] 这个数会变大，就有可能比 nums[i + 1] 大，从而影响了后续操作。还有一个比较特别的情况就是 nums[i] < nums[i - 2]，只修改 nums[i - 1] = nums[i] 不能使数组成为非递减数组，只能修改 nums[i] = nums[i - 1]。
 
 ```java
 public boolean checkPossibility(int[] nums) {
     int cnt = 0;
-    for (int i = 1; i < nums.length; i++) {
-        if (nums[i] < nums[i - 1]) {
-            cnt++;
-            if (i - 2 >= 0 && nums[i - 2] > nums[i]) nums[i] = nums[i - 1];
-            else nums[i - 1] = nums[i];
-        }
+    for (int i = 1; i < nums.length && cnt < 2; i++) {
+        if (nums[i] >= nums[i - 1])
+            continue;
+        cnt++;
+        if (i - 2 >= 0 && nums[i - 2] > nums[i])
+            nums[i] = nums[i - 1];
+        else
+            nums[i - 1] = nums[i];
     }
     return cnt <= 1;
 }
@@ -442,12 +447,58 @@ Return true.
 
 ```java
 public boolean isSubsequence(String s, String t) {
-    int pos = -1;
+    int index = -1;
     for (char c : s.toCharArray()) {
-        pos = t.indexOf(c, pos + 1);
-        if (pos == -1) return false;
+        index = t.indexOf(c, index + 1);
+        if (index == -1)
+            return false;
     }
     return true;
+}
+```
+
+**不重叠的区间个数** 
+
+[435. Non-overlapping Intervals (Medium)](https://leetcode.com/problems/non-overlapping-intervals/description/)
+
+```html
+Input: [ [1,2], [1,2], [1,2] ]
+
+Output: 2
+
+Explanation: You need to remove two [1,2] to make the rest of intervals non-overlapping.
+```
+
+```html
+Input: [ [1,2], [2,3] ]
+
+Output: 0
+
+Explanation: You don't need to remove any of the intervals since they're already non-overlapping.
+```
+
+题目描述：计算让一组区间不重叠所需要移除的区间个数。
+
+直接计算最多能组成的不重叠区间个数即可。
+
+在每次选择中，区间的结尾最为重要，选择的区间结尾越小，留给后面的区间的空间越大，那么后面能够选择的区间个数也就越大。
+
+按区间的结尾进行排序，每次选择结尾最小，并且和前一个区间不重叠的区间。
+
+```java
+public int eraseOverlapIntervals(Interval[] intervals) {
+    if (intervals.length == 0)
+        return 0;
+    Arrays.sort(intervals, Comparator.comparingInt(o -> o.end));
+    int cnt = 1;
+    int end = intervals[0].end;
+    for (int i = 1; i < intervals.length; i++) {
+        if (intervals[i].start < end)
+            continue;
+        end = intervals[i].end;
+        cnt++;
+    }
+    return intervals.length - cnt;
 }
 ```
 
@@ -465,30 +516,26 @@ Output:
 
 题目描述：气球在一个水平数轴上摆放，可以重叠，飞镖垂直投向坐标轴，使得路径上的气球都会刺破。求解最小的投飞镖次数使所有气球都被刺破。
 
-对气球按末尾位置进行排序，得到：
-
-```html
-[[1,6], [2,8], [7,12], [10,16]]
-```
-
-如果让飞镖投向 6 这个位置，那么 [1,6] 和 [2,8] 这两个气球都会被刺破，这种方式下刺破这两个气球的投飞镖次数最少，并且后面两个气球依然可以使用这种方式来刺破。
+也是计算不重叠的区间个数，不过和 Non-overlapping Intervals 的区别在于，[1, 2] 和 [2, 3] 在本题中算是重叠区间。
 
 ```java
 public int findMinArrowShots(int[][] points) {
-    if (points.length == 0) return 0;
-    Arrays.sort(points, (a, b) -> (a[1] - b[1]));
-    int curPos = points[0][1];
-    int shots = 1;
+    if (points.length == 0)
+        return 0;
+
+    Arrays.sort(points, Comparator.comparingInt(o -> o[1]));
+
+    int cnt = 1, end = points[0][1];
     for (int i = 1; i < points.length; i++) {
-        if (points[i][0] <= curPos) {
+        if (points[i][0] <= end) // [1,2] 和 [2,3] 算重叠
             continue;
-        }
-        curPos = points[i][1];
-        shots++;
+        cnt++;
+        end = points[i][1];
     }
-    return shots;
+    return cnt;
 }
 ```
+
 
 **分隔字符串使同种字符出现在一起** 
 
@@ -504,25 +551,25 @@ A partition like "ababcbacadefegde", "hijhklij" is incorrect, because it splits 
 ```
 
 ```java
-public List<Integer> partitionLabels(String S) {
-    List<Integer> partitions = new ArrayList<>();
-    int[] lastIndexs = new int[26];
-    for (int i = 0; i < S.length(); i++) {
-        lastIndexs[S.charAt(i) - 'a'] = i;
-    }
-    int firstIndex = 0;
-    while (firstIndex < S.length()) {
-        int lastIndex = firstIndex;
-        for (int i = firstIndex; i < S.length() && i <= lastIndex; i++) {
-            int index = lastIndexs[S.charAt(i) - 'a'];
-            if (index == i) continue;
-            if (index > lastIndex) lastIndex = index;
-        }
-        partitions.add(lastIndex - firstIndex + 1);
-        firstIndex = lastIndex + 1;
-    }
-    return partitions;
-}
+ public List<Integer> partitionLabels(String S) {
+     int[] lastIndexs = new int[26];
+     for (int i = 0; i < S.length(); i++)
+         lastIndexs[S.charAt(i) - 'a'] = i;
+
+     List<Integer> ret = new ArrayList<>();
+     int firstIndex = 0;
+     while (firstIndex < S.length()) {
+         int lastIndex = firstIndex;
+         for (int i = firstIndex; i < S.length() && i <= lastIndex; i++) {
+             int index = lastIndexs[S.charAt(i) - 'a'];
+             if (index > lastIndex)
+                 lastIndex = index;
+         }
+         ret.add(lastIndex - firstIndex + 1);
+         firstIndex = lastIndex + 1;
+     }
+     return ret;
+ }
 ```
 
 **根据身高和序号重组队列** 
@@ -545,25 +592,17 @@ Output:
 
 ```java
 public int[][] reconstructQueue(int[][] people) {
-    if (people == null || people.length == 0 || people[0].length == 0) return new int[0][0];
-    Arrays.sort(people, (a, b) -> {
-        if (a[0] == b[0]) return a[1] - b[1];
-        return b[0] - a[0];
-    });
-    int N = people.length;
-    List<int[]> tmp = new ArrayList<>();
-    for (int i = 0; i < N; i++) {
-        int index = people[i][1];
-        int[] p = new int[]{people[i][0], people[i][1]};
-        tmp.add(index, p);
-    }
+    if (people == null || people.length == 0 || people[0].length == 0)
+        return new int[0][0];
 
-    int[][] ret = new int[N][2];
-    for (int i = 0; i < N; i++) {
-        ret[i][0] = tmp.get(i)[0];
-        ret[i][1] = tmp.get(i)[1];
-    }
-    return ret;
+    Arrays.sort(people, (a, b) -> (a[0] == b[0] ? a[1] - b[1] : b[0] - a[0]));
+
+    List<int[]> queue = new ArrayList<>();
+
+    for (int[] p : people)
+        queue.add(p[1], p);
+
+    return queue.toArray(new int[queue.size()][]);
 }
 ```
 
@@ -591,9 +630,12 @@ public int[] twoSum(int[] numbers, int target) {
     int i = 0, j = numbers.length - 1;
     while (i < j) {
         int sum = numbers[i] + numbers[j];
-        if (sum == target) return new int[]{i + 1, j + 1};
-        else if (sum < target) i++;
-        else j--;
+        if (sum == target)
+            return new int[]{i + 1, j + 1};
+        else if (sum < target)
+            i++;
+        else
+            j--;
     }
     return null;
 }
@@ -616,9 +658,12 @@ public boolean judgeSquareSum(int c) {
     int i = 0, j = (int) Math.sqrt(c);
     while (i <= j) {
         int powSum = i * i + j * j;
-        if (powSum == c) return true;
-        if (powSum > c) j--;
-        else i++;
+        if (powSum == c)
+            return true;
+        if (powSum > c)
+            j--;
+        else
+            i++;
     }
     return false;
 }
@@ -643,11 +688,11 @@ public String reverseVowels(String s) {
     while (i <= j) {
         char ci = s.charAt(i);
         char cj = s.charAt(j);
-        if (!vowels.contains(ci)) {
+        if (!vowels.contains(ci))
             result[i++] = ci;
-        } else if (!vowels.contains(cj)) {
+        else if (!vowels.contains(cj))
             result[j--] = cj;
-        } else {
+        else {
             result[i++] = cj;
             result[j--] = ci;
         }
@@ -671,20 +716,18 @@ Explanation: You could delete the character 'c'.
 ```java
 public boolean validPalindrome(String s) {
     int i = -1, j = s.length();
-    while (++i < --j) {
-        if (s.charAt(i) != s.charAt(j)) {
+    while (++i < --j)
+        if (s.charAt(i) != s.charAt(j))
             return isPalindrome(s, i, j - 1) || isPalindrome(s, i + 1, j);
-        }
-    }
+
     return true;
 }
 
 private boolean isPalindrome(String s, int i, int j) {
-    while (i < j) {
-        if (s.charAt(i++) != s.charAt(j--)) {
+    while (i < j)
+        if (s.charAt(i++) != s.charAt(j--))
             return false;
-        }
-    }
+
     return true;
 }
 ```
@@ -705,13 +748,18 @@ Output: [1,2,2,3,5,6]
 
 ```java
 public void merge(int[] nums1, int m, int[] nums2, int n) {
-    int i = m - 1, j = n - 1; // 需要从尾开始遍历，否则在 nums1 上归并得到的值会覆盖还未进行归并比较的值
+    // 需要从尾开始遍历，否则在 nums1 上归并得到的值会覆盖还未进行归并比较的值
+    int i = m - 1, j = n - 1;
     int index = m + n - 1;
     while (i >= 0 || j >= 0) {
-        if (i < 0) nums1[index] = nums2[j--];
-        else if (j < 0) nums1[index] = nums1[i--];
-        else if (nums1[i] > nums2[j]) nums1[index] = nums1[i--];
-        else nums1[index] = nums2[j--];
+        if (i < 0)
+            nums1[index] = nums2[j--];
+        else if (j < 0)
+            nums1[index] = nums1[i--];
+        else if (nums1[i] > nums2[j])
+            nums1[index] = nums1[i--];
+        else
+            nums1[index] = nums2[j--];
         index--;
     }
 }
@@ -725,10 +773,12 @@ public void merge(int[] nums1, int m, int[] nums2, int n) {
 
 ```java
 public boolean hasCycle(ListNode head) {
-    if (head == null) return false;
+    if (head == null)
+        return false;
     ListNode l1 = head, l2 = head.next;
     while (l1 != null && l2 != null && l2.next != null) {
-        if (l1 == l2) return true;
+        if (l1 == l2)
+            return true;
         l1 = l1.next;
         l2 = l2.next.next;
     }
@@ -755,12 +805,10 @@ public String findLongestWord(String s, List<String> d) {
     String longestWord = "";
     for (String target : d) {
         int l1 = longestWord.length(), l2 = target.length();
-        if (l1 > l2 || (l1 == l2 && longestWord.compareTo(target) < 0)) {
+        if (l1 > l2 || (l1 == l2 && longestWord.compareTo(target) < 0))
             continue;
-        }
-        if (isValid(s, target)) {
+        if (isValid(s, target))
             longestWord = target;
-        }
     }
     return longestWord;
 }
@@ -768,9 +816,8 @@ public String findLongestWord(String s, List<String> d) {
 private boolean isValid(String s, String target) {
     int i = 0, j = 0;
     while (i < s.length() && j < target.length()) {
-        if (s.charAt(i) == target.charAt(j)) {
+        if (s.charAt(i) == target.charAt(j))
             j++;
-        }
         i++;
     }
     return j == target.length();
@@ -809,9 +856,8 @@ public int findKthLargest(int[] nums, int k) {
     PriorityQueue<Integer> pq = new PriorityQueue<>(); // 小顶堆
     for (int val : nums) {
         pq.add(val);
-        if (pq.size() > k) {
+        if (pq.size() > k) // 维护堆的大小为 K
             pq.poll();
-        }
     }
     return pq.peek();
 }
@@ -825,9 +871,12 @@ public int findKthLargest(int[] nums, int k) {
     int l = 0, h = nums.length - 1;
     while (l < h) {
         int j = partition(nums, l, h);
-        if (j == k) break;
-        if (j < k) l = j + 1;
-        else h = j - 1;
+        if (j == k)
+            break;
+        else if (j < k)
+            l = j + 1;
+        else
+            h = j - 1;
     }
     return nums[k];
 }
@@ -837,7 +886,8 @@ private int partition(int[] a, int l, int h) {
     while (true) {
         while (a[++i] < a[l] && i < h) ;
         while (a[--j] > a[l] && j > l) ;
-        if (i >= j) break;
+        if (i >= j)
+            break;
         swap(a, i, j);
     }
     swap(a, l, j);
@@ -845,9 +895,9 @@ private int partition(int[] a, int l, int h) {
 }
 
 private void swap(int[] a, int i, int j) {
-    int tmp = a[i];
+    int t = a[i];
     a[i] = a[j];
-    a[j] = tmp;
+    a[j] = t;
 }
 ```
 
@@ -866,24 +916,22 @@ Given [1,1,1,2,2,3] and k = 2, return [1,2].
 ```java
 public List<Integer> topKFrequent(int[] nums, int k) {
     Map<Integer, Integer> frequencyMap = new HashMap<>();
-    for (int num : nums) {
+    for (int num : nums)
         frequencyMap.put(num, frequencyMap.getOrDefault(num, 0) + 1);
-    }
+
     List<Integer>[] bucket = new List[nums.length + 1];
     for (int key : frequencyMap.keySet()) {
         int frequency = frequencyMap.get(key);
-        if (bucket[frequency] == null) {
+        if (bucket[frequency] == null)
             bucket[frequency] = new ArrayList<>();
-        }
         bucket[frequency].add(key);
     }
 
     List<Integer> topK = new ArrayList<>();
-    for (int i = bucket.length - 1; i >= 0 && topK.size() < k; i--) {
-        if (bucket[i] != null) {
+    for (int i = bucket.length - 1; i >= 0 && topK.size() < k; i--)
+        if (bucket[i] != null)
             topK.addAll(bucket[i]);
-        }
-    }
+
     return topK;
 }
 ```
@@ -907,29 +955,62 @@ So 'e' must appear before both 'r' and 't'. Therefore "eetr" is also a valid ans
 ```java
 public String frequencySort(String s) {
     Map<Character, Integer> frequencyMap = new HashMap<>();
-    for (char c : s.toCharArray()) {
+    for (char c : s.toCharArray())
         frequencyMap.put(c, frequencyMap.getOrDefault(c, 0) + 1);
-    }
+
     List<Character>[] frequencyBucket = new List[s.length() + 1];
     for (char c : frequencyMap.keySet()) {
         int f = frequencyMap.get(c);
-        if (frequencyBucket[f] == null) {
+        if (frequencyBucket[f] == null)
             frequencyBucket[f] = new ArrayList<>();
-        }
         frequencyBucket[f].add(c);
     }
     StringBuilder str = new StringBuilder();
-    for (int frequency = frequencyBucket.length - 1; frequency >= 0; frequency--) {
-        if (frequencyBucket[frequency] == null) {
+    for (int i = frequencyBucket.length - 1; i >= 0; i--) {
+        if (frequencyBucket[i] == null)
             continue;
-        }
-        for (char c : frequencyBucket[frequency]) {
-            for (int i = 0; i < frequency; i++) {
+        for (char c : frequencyBucket[i])
+            for (int j = 0; j < i; j++)
                 str.append(c);
-            }
-        }
     }
     return str.toString();
+}
+```
+
+### 荷兰国旗问题
+
+荷兰国旗包含三种颜色：红、白、蓝。有这三种颜色的球，算法的目标是将这三种球按颜色顺序正确地排列。
+
+它其实是三向切分快速排序的一种变种，在三向切分快速排序中，每次切分都将数组分成三个区间：小于切分元素、等于切分元素、大于切分元素，而该算法是将数组分成三个区间：等于红色、等于白色、等于蓝色。
+
+<div align="center"> <img src="../pics//3b49dd67-2c40-4b81-8ad2-7bbb1fe2fcbd.png"/> </div><br>
+
+**对颜色进行排序** 
+
+[75. Sort Colors (Medium)](https://leetcode.com/problems/sort-colors/description/)
+
+```html
+Input: [2,0,2,1,1,0]
+Output: [0,0,1,1,2,2]
+```
+
+```java
+public void sortColors(int[] nums) {
+    int zero = -1, one = 0, two = nums.length;
+    while (one < two) {
+        if (nums[one] == 0)
+            swap(nums, ++zero, one++);
+        else if (nums[one] == 2)
+            swap(nums, --two, one);
+        else
+            ++one;
+    }
+}
+
+private void swap(int[] nums, int i, int j) {
+    int t = nums[i];
+    nums[i] = nums[j];
+    nums[j] = t;
 }
 ```
 
